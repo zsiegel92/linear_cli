@@ -358,7 +358,13 @@ async function main() {
     throw new Error("fzf is not installed! Install it with `brew install fzf`");
   }
   console.log("Fetching issues...");
-  const issues = await getIssues();
+  let issues;
+  try {
+    issues = await getIssues();
+  } catch (err) {
+    console.error("Error connecting to Linear API");
+    return;
+  }
   console.log(`Found ${issues.length} issues`);
   const selection = await selectIssue(issues);
   if (!selection) {

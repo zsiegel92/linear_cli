@@ -3,6 +3,7 @@ import { checkIfFzfIsInstalled } from "./fzf-selection";
 import { getIssues } from "./linear";
 import { copyToClipboard, openInBrowser } from "./utils";
 import { selectIssue, selectAction } from "./ui";
+import { LinearIssue } from "./schema";
 config();
 
 async function main() {
@@ -20,7 +21,14 @@ async function main() {
     throw new Error("fzf is not installed! Install it with `brew install fzf`");
   }
   console.log("Fetching issues...");
-  const issues = await getIssues();
+  let issues: LinearIssue[];
+  try {
+    issues = await getIssues();
+  } catch (err) {
+    console.error("Error connecting to Linear API");
+    return;
+  }
+
   console.log(`Found ${issues.length} issues`);
   const selection = await selectIssue(issues);
   if (!selection) {
