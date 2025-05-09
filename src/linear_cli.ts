@@ -10,7 +10,9 @@ async function main() {
     throw new Error(
       `LINEAR_API_KEY is not set! Define in ~/.zshrc with
       \`export LINEAR_API_KEY='<your-api-key>'\`
-      or something similar.`
+      or something similar.
+      
+      Create a key at https://linear.app/current-ai/settings/account/security`
     );
   }
   const issues = await getIssues();
