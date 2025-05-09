@@ -13,11 +13,16 @@ import { actions } from "./schema";
 
 export const previewItem = (
   issue: LinearIssue,
-  teamColors: Map<string, (text: string) => string>
+  teamColors: Map<string, (text: string) => string>,
+  teamProjectSlugs: Map<string | undefined, string>
 ) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
+  const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
-    teamColor(underline(bold(issue.project?.name ?? ""))),
+    [underline(bold(issue.project?.name ?? "")), `(${projectSlug})`]
+      .filter(isNotNullOrUndefined)
+      .map((item) => teamColor(item))
+      .join(" - "),
     blue(bold(issue.title)),
     bold(issue.branchName),
     bold(issue.url ?? ""),
@@ -79,7 +84,7 @@ export async function selectIssue(issues: LinearIssue[]) {
       fullItem: issue,
     })),
     getPreview: async (item) => {
-      return previewItem(item.fullItem, teamColors);
+      return previewItem(item.fullItem, teamColors, teamProjectSlugs);
     },
   });
   return selection;

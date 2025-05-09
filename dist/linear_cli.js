@@ -259,10 +259,11 @@ function isNotNullOrUndefined(value) {
 }
 
 // src/ui.ts
-var previewItem = (issue, teamColors) => {
+var previewItem = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
+  const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
-    teamColor(underline(bold(issue.project?.name ?? ""))),
+    [underline(bold(issue.project?.name ?? "")), `(${projectSlug})`].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
     blue(bold(issue.title)),
     bold(issue.branchName),
     bold(issue.url ?? ""),
@@ -309,7 +310,7 @@ async function selectIssue(issues) {
       fullItem: issue
     })),
     getPreview: async (item) => {
-      return previewItem(item.fullItem, teamColors);
+      return previewItem(item.fullItem, teamColors, teamProjectSlugs);
     }
   });
   return selection;
