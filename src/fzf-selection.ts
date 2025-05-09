@@ -128,3 +128,9 @@ export async function getUserSelections<T extends FzfSelection>({
   if (!item) throw new Error(`No item found for id: ${chosenIds}`);
   return item;
 }
+
+export async function checkIfFzfIsInstalled() {
+  const child = spawn("fzf", ["--version"]);
+  const code = await new Promise<number>((r) => child.on("close", r));
+  return code === 0;
+}

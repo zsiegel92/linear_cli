@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { getUserSelections } from "./fzf-selection";
+import { getUserSelections, checkIfFzfIsInstalled } from "./fzf-selection";
 import { getIssues } from "./linear";
 import { actions } from "./schema";
 import { copyToClipboard, openInBrowser } from "./utils";
@@ -14,6 +14,10 @@ async function main() {
       
       Create a key at https://linear.app/current-ai/settings/account/security`
     );
+  }
+  const fzfInstalled = await checkIfFzfIsInstalled();
+  if (!fzfInstalled) {
+    throw new Error("fzf is not installed! Install it with `brew install fzf`");
   }
   const issues = await getIssues();
   const previewItem = (issue: (typeof issues)[number]) => `

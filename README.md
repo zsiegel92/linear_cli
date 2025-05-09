@@ -8,6 +8,8 @@ There are other Linear CLI tools, but this is the only one that wraps `fzf`. If 
 npm install -g linear-select-issue-cli
 ```
 
+Note: `fzf` must be installed. Install it with `brew install fzf`.
+
 ## Usage
 
 1. Create an API key at https://linear.app/current-ai/settings/account/security`

@@ -91,6 +91,11 @@ ${item2.previewSuffix}`;
   if (!item) throw new Error(`No item found for id: ${chosenIds}`);
   return item;
 }
+async function checkIfFzfIsInstalled() {
+  const child = spawn("fzf", ["--version"]);
+  const code = await new Promise((r) => child.on("close", r));
+  return code === 0;
+}
 
 // src/linear.ts
 import { LinearClient } from "@linear/sdk";
@@ -232,6 +237,10 @@ async function main() {
       
       Create a key at https://linear.app/current-ai/settings/account/security`
     );
+  }
+  const fzfInstalled = await checkIfFzfIsInstalled();
+  if (!fzfInstalled) {
+    throw new Error("fzf is not installed! Install it with `brew install fzf`");
   }
   const issues = await getIssues();
   const previewItem = (issue) => `
