@@ -1,4 +1,4 @@
-import { LinearClient, Issue } from "@linear/sdk";
+import { LinearClient } from "@linear/sdk";
 
 import { linearIssueResponseSchema } from "./schema";
 
@@ -70,15 +70,15 @@ export async function getIssues() {
   return linearIssueResponseSchema.parse(issues).data.issues.nodes;
 }
 
-const getIssuesDirect = async () => {
-  const enrichIssue = async (issue: Issue) => {
-    const assignee = await issue.assignee;
-    const team = await issue.team;
-  };
-  const linearClient = new LinearClient({
-    apiKey: process.env.LINEAR_API_KEY,
-  });
-  const issues = await linearClient.issues();
-  issues.nodes.forEach(enrichIssue);
-  return issues;
-};
+// const getIssuesDirect = async () => {
+//   const enrichIssue = async (issue: Issue) => {
+//     const assignee = await issue.assignee;
+//     const team = await issue.team;
+//   };
+//   const linearClient = new LinearClient({
+//     apiKey: process.env.LINEAR_API_KEY,
+//   });
+//   const issues = await linearClient.issues();
+//   issues.nodes.forEach(enrichIssue);
+//   return issues;
+// };
