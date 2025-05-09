@@ -19,7 +19,7 @@ export LINEAR_API_KEY='<your-api-key>'
 ```
 3. Run the command
 ```bash
-linear_cli
+linear-cli
 # OR
 npx linear-select-issue-cli
 ```
