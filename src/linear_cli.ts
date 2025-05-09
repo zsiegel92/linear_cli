@@ -68,16 +68,23 @@ ${issue.description ?? ""}
   }
   switch (action.id) {
     case "copy-branch-name":
-      await copyToClipboard(selection.fullItem.branchName);
+      copyToClipboard(selection.fullItem.branchName);
+      console.log(
+        `Copied branch name to clipboard (${selection.fullItem.branchName})`
+      );
       break;
     case "open-in-browser":
-      await openInBrowser(selection.fullItem.url);
+      openInBrowser(selection.fullItem.url);
+      console.log(`Opened in browser (${selection.fullItem.url})`);
       break;
     case "copy-issue-url":
-      await copyToClipboard(selection.fullItem.url);
+      copyToClipboard(selection.fullItem.url);
+      console.log(`Copied issue URL to clipboard (${selection.fullItem.url})`);
       break;
   }
 }
 
-// npx tsx linear_cli.ts
+// npx tsx src/linear_cli.ts
+// or
+// npm run dev
 main().then(() => console.log("done"));

@@ -1,6 +1,6 @@
 {
   "name": "linear-select-issue-cli",
-  "version": "1.0.13",
+  "version": "1.1.0",
   "type": "module",
   "prepublishOnly": "npm run build",
   "scripts": {
@@ -8,10 +8,10 @@
     "dev": "tsx src/linear_cli.ts",
     "built": "node dist/linear_cli.js",
     "patch": "npm version patch",
-    "publish": "npm run build && npm publish --access public"
+    "pub": "npm publish --access public"
   },
   "bin": {
-    "linear_cli": "./dist/linear_cli.js"
+    "linear_cli": "dist/linear_cli.js"
   },
   "files": [
     "dist"

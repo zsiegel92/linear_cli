@@ -15,15 +15,18 @@ async function getTempFilePath(prefix = "myapp-") {
 async function getUserSelections({
   items,
   fzfArgs = [
-    "--cycle",
     "--no-sort",
+    "--no-mouse",
+    "--wrap",
     "--bind",
     // let the user scroll the preview with Alt-↑/↓/u/d
     "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down"
   ],
   getPreview
 }) {
-  if (!items.length) return [];
+  if (!items.length) {
+    return void 0;
+  }
   const tmpSel = await getTempFilePath();
   const tmpPrev = await getTempFilePath();
   await Promise.all([fs.writeFile(tmpSel, ""), fs.writeFile(tmpPrev, "")]);
@@ -33,19 +36,19 @@ async function getUserSelections({
     try {
       const hovered = (await fs.readFile(tmpSel, "utf8")).trim();
       if (hovered) {
-        const item = items.find((i) => i.id === hovered);
-        if (!item) return;
-        const preview = await getPreview(item);
+        const item2 = items.find((i) => i.id === hovered);
+        if (!item2) return;
+        const preview = await getPreview(item2);
         let fullPreview = preview;
-        if (item.previewPrefix) {
-          fullPreview = `${item.previewPrefix}
+        if (item2.previewPrefix) {
+          fullPreview = `${item2.previewPrefix}
 
 ${preview}`;
         }
-        if (item.previewSuffix) {
+        if (item2.previewSuffix) {
           fullPreview = `${preview}
 
-${item.previewSuffix}`;
+${item2.previewSuffix}`;
         }
         await fs.writeFile(tmpPrev, fullPreview);
         await fs.writeFile(tmpSel, "");
@@ -79,10 +82,14 @@ ${item.previewSuffix}`;
   for await (const chunk of child.stdout) out += chunk;
   const code = await new Promise((r) => child.on("close", r));
   clearInterval(monitor);
-  if (code === 1 || code === 130) return [];
+  if (code === 1 || code === 130) {
+    return void 0;
+  }
   if (code !== 0) throw new Error(`fzf exited with ${code}`);
   const chosenIds = out.trim().split("\n").map((l) => l.split(" ")[0]);
-  return items.filter((i) => chosenIds.includes(i.id));
+  const item = items.find((i) => chosenIds.includes(i.id));
+  if (!item) throw new Error(`No item found for id: ${chosenIds}`);
+  return item;
 }
 
 // src/linear.ts
@@ -125,7 +132,8 @@ var linearIssueSchema = z.object({
   priorityLabel: z.string().nullable(),
   startedAt: z.string().nullable(),
   creator: linearUserSchema,
-  dueDate: z.string().nullable()
+  dueDate: z.string().nullable(),
+  url: z.string()
 });
 var linearIssueResponseSchema = z.object({
   data: z.object({
@@ -136,6 +144,11 @@ var linearIssueResponseSchema = z.object({
   headers: z.object({}),
   status: z.number()
 });
+var actions = [
+  "copy-branch-name",
+  "open-in-browser",
+  "copy-issue-url"
+];
 
 // src/linear.ts
 async function getIssues() {
@@ -154,6 +167,7 @@ async function getIssues() {
                 branchName
                 createdAt
                 updatedAt
+                url
                 team {
                     name
                     displayName
@@ -198,32 +212,89 @@ async function getIssues() {
   return linearIssueResponseSchema.parse(issues).data.issues.nodes;
 }
 
+// src/utils.ts
+import { exec } from "child_process";
+function copyToClipboard(text) {
+  return exec(`echo ${text} | pbcopy`);
+}
+function openInBrowser(url) {
+  return exec(`open ${url}`);
+}
+
 // src/linear_cli.ts
 config();
 async function main() {
   if (!process.env.LINEAR_API_KEY) {
     throw new Error(
-      "LINEAR_API_KEY is not set! Define in ~/.zshrc or something similar."
+      `LINEAR_API_KEY is not set! Define in ~/.zshrc with
+      \`export LINEAR_API_KEY='<your-api-key>'\`
+      or something similar.`
     );
   }
   const issues = await getIssues();
-  const selections = await getUserSelections({
+  const previewItem = (issue) => `
+\x1B[1m
+[${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${issue.title}
+\x1B[0m
+\x1B[1m${issue.branchName}\x1B[0m
+\x1B[1m${issue.url}\x1B[0m
+${issue.description ?? ""}
+`;
+  const selection = await getUserSelections({
     items: issues.map((issue) => ({
       id: issue.id,
       display: `[${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${issue.title}`,
-      // previewPrefix: `${issue.title}\n\n`,
-      previewSuffix: issue.description ?? ""
+      fullItem: issue
     })),
     getPreview: async (item) => {
-      const preview = item ? `\x1B[1m${item.display}\x1B[0m
-
-\u2022 id: ${item.id}
-
-# add any rich preview here` : "";
-      return preview;
+      return previewItem(item.fullItem);
     }
   });
-  console.log(selections);
-  console.log(JSON.stringify(issues, null, 2));
+  if (!selection) {
+    console.log("No issue selected");
+    return;
+  }
+  const action = await getUserSelections({
+    items: actions.map((action2) => {
+      switch (action2) {
+        case "copy-branch-name":
+          return {
+            id: action2,
+            display: `Copy branch name (${selection.fullItem.branchName})`
+          };
+        case "open-in-browser":
+          return {
+            id: action2,
+            display: `Open in browser (${selection.fullItem.url})`
+          };
+        case "copy-issue-url":
+          return {
+            id: action2,
+            display: `Copy issue URL (${selection.fullItem.url})`
+          };
+      }
+    }),
+    getPreview: async (item) => item.display
+  });
+  if (!action) {
+    console.log("No action selected");
+    return;
+  }
+  switch (action.id) {
+    case "copy-branch-name":
+      copyToClipboard(selection.fullItem.branchName);
+      console.log(
+        `Copied branch name to clipboard (${selection.fullItem.branchName})`
+      );
+      break;
+    case "open-in-browser":
+      openInBrowser(selection.fullItem.url);
+      console.log(`Opened in browser (${selection.fullItem.url})`);
+      break;
+    case "copy-issue-url":
+      copyToClipboard(selection.fullItem.url);
+      console.log(`Copied issue URL to clipboard (${selection.fullItem.url})`);
+      break;
+  }
 }
 main().then(() => console.log("done"));
