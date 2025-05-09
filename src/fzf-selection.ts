@@ -27,7 +27,7 @@ export async function getUserSelections<T extends FzfSelection>({
 }: {
   items: T[];
   fzfArgs?: string[];
-  getPreview: (item: T) => Promise<string>;
+  getPreview: ((item: T) => Promise<string>) | undefined;
 }): Promise<T | undefined> {
   if (!items.length) {
     return undefined;
@@ -51,6 +51,7 @@ export async function getUserSelections<T extends FzfSelection>({
         // find the matching item
         const item = items.find((i) => i.id === hovered);
         if (!item) return;
+        if (!getPreview) return;
         const preview = await getPreview(item);
         let fullPreview = preview;
         if (item.previewPrefix) {
@@ -97,8 +98,7 @@ export async function getUserSelections<T extends FzfSelection>({
     ...fzfArgs,
     "--delimiter= ",
     "--with-nth=2..", // show only the ‘display’ column in the list
-    "--preview",
-    previewCmd,
+    ...(getPreview ? ["--preview", previewCmd] : []),
   ];
 
   const child = spawn("fzf", args, {

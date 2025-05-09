@@ -38,6 +38,7 @@ async function getUserSelections({
       if (hovered) {
         const item2 = items.find((i) => i.id === hovered);
         if (!item2) return;
+        if (!getPreview) return;
         const preview = await getPreview(item2);
         let fullPreview = preview;
         if (item2.previewPrefix) {
@@ -70,8 +71,7 @@ ${item2.previewSuffix}`;
     "--delimiter= ",
     "--with-nth=2..",
     // show only the ‘display’ column in the list
-    "--preview",
-    previewCmd
+    ...getPreview ? ["--preview", previewCmd] : []
   ];
   const child = spawn("fzf", args, {
     stdio: ["pipe", "pipe", "inherit"]
@@ -275,7 +275,7 @@ ${issue.description ?? ""}
           };
       }
     }),
-    getPreview: async (item) => item.display
+    getPreview: void 0
   });
   if (!action) {
     console.log("No action selected");

@@ -68,7 +68,7 @@ ${issue.description ?? ""}
           };
       }
     }),
-    getPreview: async (item) => item.display,
+    getPreview: undefined,
   });
   if (!action) {
     console.log("No action selected");
