@@ -4,7 +4,7 @@
 import { config } from "dotenv";
 
 // src/fzf-selection.ts
-import { spawn } from "child_process";
+import { spawn, exec } from "child_process";
 import { promises as fs } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -92,7 +92,7 @@ ${item2.previewSuffix}`;
   return item;
 }
 async function checkIfFzfIsInstalled() {
-  const child = spawn("fzf", ["--version"]);
+  const child = exec("fzf --version");
   const code = await new Promise((r) => child.on("close", r));
   return code === 0;
 }
@@ -163,7 +163,7 @@ async function getIssues() {
   const linearGraphQLClient = linearClient.client;
   const issues = await linearGraphQLClient.rawRequest(`
     query Me { 
-        issues(orderBy: updatedAt) { 
+        issues(orderBy: updatedAt, first: 100) { 
             nodes { 
                 id 
                 title 
@@ -218,12 +218,12 @@ async function getIssues() {
 }
 
 // src/utils.ts
-import { exec } from "child_process";
+import { exec as exec2 } from "child_process";
 function copyToClipboard(text) {
-  return exec(`echo ${text} | pbcopy`);
+  return exec2(`echo ${text} | pbcopy`);
 }
 function openInBrowser(url) {
-  return exec(`open ${url}`);
+  return exec2(`open ${url}`);
 }
 
 // src/linear_cli.ts
@@ -242,7 +242,9 @@ async function main() {
   if (!fzfInstalled) {
     throw new Error("fzf is not installed! Install it with `brew install fzf`");
   }
+  console.log("Fetching issues...");
   const issues = await getIssues();
+  console.log(`Found ${issues.length} issues`);
   const previewItem = (issue) => `
 \x1B[1m
 [${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${issue.title}

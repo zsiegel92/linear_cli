@@ -16,7 +16,7 @@ export async function getIssues() {
   const linearGraphQLClient = linearClient.client;
   const issues = await linearGraphQLClient.rawRequest(`
     query Me { 
-        issues(orderBy: updatedAt) { 
+        issues(orderBy: updatedAt, first: 100) { 
             nodes { 
                 id 
                 title 

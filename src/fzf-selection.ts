@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn, exec } from "child_process";
 import { promises as fs } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -130,7 +130,7 @@ export async function getUserSelections<T extends FzfSelection>({
 }
 
 export async function checkIfFzfIsInstalled() {
-  const child = spawn("fzf", ["--version"]);
+  const child = exec("fzf --version");
   const code = await new Promise<number>((r) => child.on("close", r));
   return code === 0;
 }

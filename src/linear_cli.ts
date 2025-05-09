@@ -19,7 +19,9 @@ async function main() {
   if (!fzfInstalled) {
     throw new Error("fzf is not installed! Install it with `brew install fzf`");
   }
+  console.log("Fetching issues...");
   const issues = await getIssues();
+  console.log(`Found ${issues.length} issues`);
   const previewItem = (issue: (typeof issues)[number]) => `
 \x1b[1m
 [${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${
