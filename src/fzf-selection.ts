@@ -16,8 +16,9 @@ async function getTempFilePath(prefix = "myapp-"): Promise<string> {
 export async function getUserSelections<T extends FzfSelection>({
   items,
   fzfArgs = [
-    "--cycle",
     "--no-sort",
+    "--no-mouse",
+    "--wrap",
     "--bind",
     // let the user scroll the preview with Alt-↑/↓/u/d
     "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down",
@@ -27,8 +28,10 @@ export async function getUserSelections<T extends FzfSelection>({
   items: T[];
   fzfArgs?: string[];
   getPreview: (item: T) => Promise<string>;
-}): Promise<T[]> {
-  if (!items.length) return [];
+}): Promise<T | undefined> {
+  if (!items.length) {
+    return undefined;
+  }
 
   // ── 1.  Two temp files ────────────────────────────────────────────────
   const tmpSel = await getTempFilePath(); // fzf → TS   (one-line file containing the hovered id)
@@ -112,12 +115,16 @@ export async function getUserSelections<T extends FzfSelection>({
   const code = await new Promise<number>((r) => child.on("close", r));
   clearInterval(monitor);
 
-  if (code === 1 || code === 130) return []; // cancel / ESC
+  if (code === 1 || code === 130) {
+    return undefined;
+  }
   if (code !== 0) throw new Error(`fzf exited with ${code}`);
 
   const chosenIds = out
     .trim()
     .split("\n")
     .map((l) => l.split(" ")[0]);
-  return items.filter((i) => chosenIds.includes(i.id));
+  const item = items.find((i) => chosenIds.includes(i.id));
+  if (!item) throw new Error(`No item found for id: ${chosenIds}`);
+  return item;
 }

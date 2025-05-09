@@ -40,6 +40,7 @@ const linearIssueSchema = z.object({
   startedAt: z.string().nullable(),
   creator: linearUserSchema,
   dueDate: z.string().nullable(),
+  url: z.string(),
 });
 
 export const linearIssueResponseSchema = z.object({
@@ -51,3 +52,9 @@ export const linearIssueResponseSchema = z.object({
   headers: z.object({}),
   status: z.number(),
 });
+
+export const actions = [
+  "copy-branch-name",
+  "open-in-browser",
+  "copy-issue-url",
+] as const;
