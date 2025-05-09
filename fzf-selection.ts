@@ -3,10 +3,12 @@ import { promises as fs } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-interface FzfSelection {
+type FzfSelection = {
   display: string;
   id: string;
-}
+  previewPrefix?: string;
+  previewSuffix?: string;
+};
 async function getTempFilePath(prefix = "myapp-"): Promise<string> {
   const tempDir = await fs.mkdtemp(join(tmpdir(), prefix));
   return join(tempDir, "somefile.tmp");
@@ -24,7 +26,7 @@ export async function getUserSelections<T extends FzfSelection>({
 }: {
   items: T[];
   fzfArgs?: string[];
-  getPreview: (item: T, nTimesUpdates: number) => Promise<string>;
+  getPreview: (item: T) => Promise<string>;
 }): Promise<T[]> {
   if (!items.length) return [];
 
@@ -35,7 +37,6 @@ export async function getUserSelections<T extends FzfSelection>({
   // create the files so `cat` has something to read the first time
   await Promise.all([fs.writeFile(tmpSel, ""), fs.writeFile(tmpPrev, "")]);
 
-  let nTimesUpdates = 0;
   let locked = false;
   // ── 2.  Kick off the preview-render loop  ─────────────────────────────
   const monitor = setInterval(async () => {
@@ -47,11 +48,17 @@ export async function getUserSelections<T extends FzfSelection>({
         // find the matching item
         const item = items.find((i) => i.id === hovered);
         if (!item) return;
-        nTimesUpdates++;
-        const preview = await getPreview(item, nTimesUpdates);
+        const preview = await getPreview(item);
+        let fullPreview = preview;
+        if (item.previewPrefix) {
+          fullPreview = `${item.previewPrefix}\n\n${preview}`;
+        }
+        if (item.previewSuffix) {
+          fullPreview = `${preview}\n\n${item.previewSuffix}`;
+        }
         // wait 2s
         // await new Promise((resolve) => setTimeout(resolve, 2000))
-        await fs.writeFile(tmpPrev, preview);
+        await fs.writeFile(tmpPrev, fullPreview);
         // wipe the request so we don’t re-render the same thing
         await fs.writeFile(tmpSel, "");
         // locked = false
