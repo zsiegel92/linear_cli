@@ -2,9 +2,7 @@ import { z } from "zod";
 
 const linearTeamSchema = z.object({
   name: z.string(),
-  id: z.string(),
   key: z.string(),
-  inviteHash: z.string(),
 });
 
 const linearStateSchema = z.object({
@@ -14,7 +12,6 @@ const linearStateSchema = z.object({
 
 const linearCycleSchema = z.object({
   name: z.string(),
-  team: linearTeamSchema,
 });
 
 const linearUserSchema = z.object({

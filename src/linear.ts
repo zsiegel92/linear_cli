@@ -16,7 +16,7 @@ export async function getIssues() {
   const linearGraphQLClient = linearClient.client;
   const issues = await linearGraphQLClient.rawRequest(`
     query Me { 
-        issues(orderBy: updatedAt, first: 100) { 
+        issues(orderBy: updatedAt, first: 80) {
             nodes { 
                 id 
                 title 
@@ -29,9 +29,7 @@ export async function getIssues() {
                 team {
                     name
                     displayName
-                    id
                     key
-                    inviteHash
                 }
                 state {
                     name
@@ -46,13 +44,6 @@ export async function getIssues() {
                 dueDate
                 cycle {
                     name
-                    team {
-                        name
-                        displayName
-                        id
-                        key
-                        inviteHash
-                    }
                 }
                 dueDate
                 estimate

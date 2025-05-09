@@ -104,17 +104,14 @@ import { LinearClient } from "@linear/sdk";
 import { z } from "zod";
 var linearTeamSchema = z.object({
   name: z.string(),
-  id: z.string(),
-  key: z.string(),
-  inviteHash: z.string()
+  key: z.string()
 });
 var linearStateSchema = z.object({
   name: z.string(),
   type: z.string()
 });
 var linearCycleSchema = z.object({
-  name: z.string(),
-  team: linearTeamSchema
+  name: z.string()
 });
 var linearUserSchema = z.object({
   name: z.string(),
@@ -163,7 +160,7 @@ async function getIssues() {
   const linearGraphQLClient = linearClient.client;
   const issues = await linearGraphQLClient.rawRequest(`
     query Me { 
-        issues(orderBy: updatedAt, first: 100) { 
+        issues(orderBy: updatedAt, first: 80) {
             nodes { 
                 id 
                 title 
@@ -176,9 +173,7 @@ async function getIssues() {
                 team {
                     name
                     displayName
-                    id
                     key
-                    inviteHash
                 }
                 state {
                     name
@@ -193,13 +188,6 @@ async function getIssues() {
                 dueDate
                 cycle {
                     name
-                    team {
-                        name
-                        displayName
-                        id
-                        key
-                        inviteHash
-                    }
                 }
                 dueDate
                 estimate
