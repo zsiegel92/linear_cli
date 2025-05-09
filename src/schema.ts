@@ -20,6 +20,13 @@ const linearUserSchema = z.object({
   displayName: z.string(),
 });
 
+const linearProjectSchema = z.object({
+  name: z.string(),
+  color: z.string(),
+  slugId: z.string(),
+  id: z.string(),
+});
+
 const linearIssueSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -38,7 +45,9 @@ const linearIssueSchema = z.object({
   creator: linearUserSchema,
   dueDate: z.string().nullable(),
   url: z.string(),
+  project: linearProjectSchema.nullable(),
 });
+export type LinearIssue = z.infer<typeof linearIssueSchema>;
 
 export const linearIssueResponseSchema = z.object({
   data: z.object({

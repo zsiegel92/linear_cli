@@ -54,6 +54,12 @@ export async function getIssues() {
                     displayName
                     email
                 } 
+                project {
+                    name
+                    color
+                    slugId
+                    id
+                }
             } 
         } 
     }
@@ -65,6 +71,7 @@ const getIssuesDirect = async () => {
   const enrichIssue = async (issue: Issue) => {
     const assignee = await issue.assignee;
     const team = await issue.team;
+    const project = await issue.project;
   };
   const linearClient = new LinearClient({
     apiKey: process.env.LINEAR_API_KEY,

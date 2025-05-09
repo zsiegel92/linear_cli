@@ -1,8 +1,8 @@
 import { config } from "dotenv";
-import { getUserSelections, checkIfFzfIsInstalled } from "./fzf-selection";
+import { checkIfFzfIsInstalled } from "./fzf-selection";
 import { getIssues } from "./linear";
-import { actions } from "./schema";
 import { copyToClipboard, openInBrowser } from "./utils";
+import { selectIssue, selectAction } from "./ui";
 config();
 
 async function main() {
@@ -22,59 +22,17 @@ async function main() {
   console.log("Fetching issues...");
   const issues = await getIssues();
   console.log(`Found ${issues.length} issues`);
-  const previewItem = (issue: (typeof issues)[number]) => `
-\x1b[1m
-[${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${
-    issue.title
-  }
-\x1b[0m
-\x1b[1m${issue.branchName}\x1b[0m
-\x1b[1m${issue.url}\x1b[0m
-${issue.description ?? ""}
-`;
-  const selection = await getUserSelections({
-    items: issues.map((issue) => ({
-      id: issue.id,
-      display: `[${issue.team.key} - ${
-        issue.assignee?.displayName ?? "UNASSIGNED"
-      }] ${issue.title}`,
-      fullItem: issue,
-    })),
-    getPreview: async (item) => {
-      return previewItem(item.fullItem);
-    },
-  });
+  const selection = await selectIssue(issues);
   if (!selection) {
     console.log("No issue selected");
     return;
   }
-  const action = await getUserSelections({
-    items: actions.map((action) => {
-      switch (action) {
-        case "copy-branch-name":
-          return {
-            id: action,
-            display: `Copy branch name (${selection.fullItem.branchName})`,
-          };
-        case "open-in-browser":
-          return {
-            id: action,
-            display: `Open in browser (${selection.fullItem.url})`,
-          };
-        case "copy-issue-url":
-          return {
-            id: action,
-            display: `Copy issue URL (${selection.fullItem.url})`,
-          };
-      }
-    }),
-    getPreview: undefined,
-  });
+  const action = await selectAction(selection.fullItem);
   if (!action) {
     console.log("No action selected");
     return;
   }
-  switch (action.id) {
+  switch (action) {
     case "copy-branch-name":
       copyToClipboard(selection.fullItem.branchName);
       console.log(

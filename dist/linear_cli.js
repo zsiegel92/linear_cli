@@ -18,6 +18,7 @@ async function getUserSelections({
     "--no-sort",
     "--no-mouse",
     "--wrap",
+    "--ansi",
     "--bind",
     // let the user scroll the preview with Alt-↑/↓/u/d
     "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down"
@@ -118,6 +119,12 @@ var linearUserSchema = z.object({
   email: z.string(),
   displayName: z.string()
 });
+var linearProjectSchema = z.object({
+  name: z.string(),
+  color: z.string(),
+  slugId: z.string(),
+  id: z.string()
+});
 var linearIssueSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -135,7 +142,8 @@ var linearIssueSchema = z.object({
   startedAt: z.string().nullable(),
   creator: linearUserSchema,
   dueDate: z.string().nullable(),
-  url: z.string()
+  url: z.string(),
+  project: linearProjectSchema.nullable()
 });
 var linearIssueResponseSchema = z.object({
   data: z.object({
@@ -198,6 +206,12 @@ async function getIssues() {
                     displayName
                     email
                 } 
+                project {
+                    name
+                    color
+                    slugId
+                    id
+                }
             } 
         } 
     }
@@ -212,6 +226,118 @@ function copyToClipboard(text) {
 }
 function openInBrowser(url) {
   return exec2(`open ${url}`);
+}
+function bold(text) {
+  return `\x1B[1m${text}\x1B[0m`;
+}
+function underline(text) {
+  return `\x1B[4m${text}\x1B[0m`;
+}
+function blue(text) {
+  return `\x1B[34m${text}\x1B[0m`;
+}
+function yellow(text) {
+  return `\x1B[33m${text}\x1B[0m`;
+}
+function cyan(text) {
+  return `\x1B[36m${text}\x1B[0m`;
+}
+function magenta(text) {
+  return `\x1B[35m${text}\x1B[0m`;
+}
+function noColor(text) {
+  return text;
+}
+var secondaryColors = [yellow, cyan, magenta];
+function getSlug(text) {
+  return text.split(":").map(
+    (part) => part.trim().split(" ").map((word) => word[0]).join("")
+  ).join("");
+}
+function isNotNullOrUndefined(value) {
+  return value !== null && value !== void 0;
+}
+
+// src/ui.ts
+var previewItem = (issue, teamColors) => {
+  const teamColor = teamColors.get(issue.team.key) ?? noColor;
+  return [
+    teamColor(underline(bold(issue.project?.name ?? ""))),
+    blue(bold(issue.title)),
+    bold(issue.branchName),
+    bold(issue.url ?? ""),
+    "\n",
+    issue.description ?? ""
+  ].join("\n");
+};
+var displayItem = (issue, teamColors, teamProjectSlugs) => {
+  const teamColor = teamColors.get(issue.team.key) ?? noColor;
+  const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
+  return `[${[
+    issue.assignee?.displayName ?? "UNASSIGNED",
+    issue.team.key,
+    projectSlug
+  ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ")}] ${blue(issue.title)}`;
+};
+var getTeamColors = (issues) => {
+  const teamColors = new Map(
+    [...new Set(issues.map((issue) => issue.team.key))].map(
+      (teamKey, index) => [
+        teamKey,
+        secondaryColors[index % secondaryColors.length]
+      ]
+    )
+  );
+  return teamColors;
+};
+var getTeamProjectSlugs = (issues) => {
+  const teamProjectSlugs = new Map(
+    issues.map((issue) => [
+      issue.project?.id,
+      getSlug(issue.project?.name ?? "")
+    ])
+  );
+  return teamProjectSlugs;
+};
+async function selectIssue(issues) {
+  const teamColors = getTeamColors(issues);
+  const teamProjectSlugs = getTeamProjectSlugs(issues);
+  const selection = await getUserSelections({
+    items: issues.map((issue) => ({
+      id: issue.id,
+      display: displayItem(issue, teamColors, teamProjectSlugs),
+      fullItem: issue
+    })),
+    getPreview: async (item) => {
+      return previewItem(item.fullItem, teamColors);
+    }
+  });
+  return selection;
+}
+async function selectAction(selection) {
+  const action = await getUserSelections({
+    items: actions.map((action2) => {
+      switch (action2) {
+        case "copy-branch-name":
+          return {
+            id: action2,
+            display: `Copy branch name (${selection.branchName})`
+          };
+        case "open-in-browser":
+          return {
+            id: action2,
+            display: `Open in browser (${selection.url})`
+          };
+        case "copy-issue-url":
+          return {
+            id: action2,
+            display: `Copy issue URL (${selection.url})`
+          };
+      }
+    }),
+    getPreview: void 0
+  });
+  return action?.id ?? null;
 }
 
 // src/linear_cli.ts
@@ -233,55 +359,17 @@ async function main() {
   console.log("Fetching issues...");
   const issues = await getIssues();
   console.log(`Found ${issues.length} issues`);
-  const previewItem = (issue) => `
-\x1B[1m
-[${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${issue.title}
-\x1B[0m
-\x1B[1m${issue.branchName}\x1B[0m
-\x1B[1m${issue.url}\x1B[0m
-${issue.description ?? ""}
-`;
-  const selection = await getUserSelections({
-    items: issues.map((issue) => ({
-      id: issue.id,
-      display: `[${issue.team.key} - ${issue.assignee?.displayName ?? "UNASSIGNED"}] ${issue.title}`,
-      fullItem: issue
-    })),
-    getPreview: async (item) => {
-      return previewItem(item.fullItem);
-    }
-  });
+  const selection = await selectIssue(issues);
   if (!selection) {
     console.log("No issue selected");
     return;
   }
-  const action = await getUserSelections({
-    items: actions.map((action2) => {
-      switch (action2) {
-        case "copy-branch-name":
-          return {
-            id: action2,
-            display: `Copy branch name (${selection.fullItem.branchName})`
-          };
-        case "open-in-browser":
-          return {
-            id: action2,
-            display: `Open in browser (${selection.fullItem.url})`
-          };
-        case "copy-issue-url":
-          return {
-            id: action2,
-            display: `Copy issue URL (${selection.fullItem.url})`
-          };
-      }
-    }),
-    getPreview: void 0
-  });
+  const action = await selectAction(selection.fullItem);
   if (!action) {
     console.log("No action selected");
     return;
   }
-  switch (action.id) {
+  switch (action) {
     case "copy-branch-name":
       copyToClipboard(selection.fullItem.branchName);
       console.log(

@@ -19,6 +19,7 @@ export async function getUserSelections<T extends FzfSelection>({
     "--no-sort",
     "--no-mouse",
     "--wrap",
+    "--ansi",
     "--bind",
     // let the user scroll the preview with Alt-↑/↓/u/d
     "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down",
