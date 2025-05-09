@@ -16,7 +16,7 @@ async function getTempFilePath(prefix = "myapp-"): Promise<string> {
 export async function getUserSelections<T extends FzfSelection>({
   items,
   fzfArgs = [
-    "--no-sort",
+    // "--no-sort",
     "--no-mouse",
     "--wrap",
     "--ansi",

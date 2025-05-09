@@ -15,7 +15,7 @@ async function getTempFilePath(prefix = "myapp-") {
 async function getUserSelections({
   items,
   fzfArgs = [
-    "--no-sort",
+    // "--no-sort",
     "--no-mouse",
     "--wrap",
     "--ansi",
