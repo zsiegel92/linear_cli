@@ -1,10 +1,15 @@
+#!/usr/bin/env tsx
 import { config } from "dotenv";
 import { getUserSelections } from "./fzf-selection";
 import { getIssues } from "./linear";
-import { Issue } from "@linear/sdk";
 config();
 
 async function main() {
+  if (!process.env.LINEAR_API_KEY) {
+    throw new Error(
+      "LINEAR_API_KEY is not set! Define in ~/.zshrc or something similar."
+    );
+  }
   const issues = await getIssues();
   const selections = await getUserSelections({
     items: issues.map((issue) => ({
@@ -25,5 +30,6 @@ async function main() {
   console.log(selections);
   console.log(JSON.stringify(issues, null, 2));
 }
-// npx tsx --env-file .env linear_cli.ts
+
+// npx tsx linear_cli.ts
 main().then(() => console.log("done"));
