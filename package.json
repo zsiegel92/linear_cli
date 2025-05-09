@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/linear_cli.ts",
-    "built": "node dist/linear_cli.js"
+    "built": "node dist/linear_cli.js",
+    "publish": "npm run build && npm version patch && npm publish --access public"
   },
   "bin": {
     "linear_cli": "./dist/linear_cli.js"
