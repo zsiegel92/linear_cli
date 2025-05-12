@@ -26,11 +26,18 @@ export const previewItem = (
     [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null]
       .filter(isNotNullOrUndefined)
       .join(" - "),
+    issue.creator?.displayName
+      ? `Created by ${issue.creator?.displayName ?? "Unknown"} at ${new Date(
+          issue.createdAt
+        ).toLocaleString()}`
+      : null,
     bold(issue.branchName),
     bold(issue.url ?? ""),
     "\n",
     issue.description ?? "",
-  ].join("\n");
+  ]
+    .filter(isNotNullOrUndefined)
+    .join("\n");
 };
 
 export const displayItem = (

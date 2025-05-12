@@ -265,11 +265,14 @@ var previewItem = (issue, teamColors, teamProjectSlugs) => {
   return [
     [underline(bold(issue.project?.name ?? "")), `(${projectSlug})`].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
     [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
+    issue.creator?.displayName ? `Created by ${issue.creator?.displayName ?? "Unknown"} at ${new Date(
+      issue.createdAt
+    ).toLocaleString()}` : null,
     bold(issue.branchName),
     bold(issue.url ?? ""),
     "\n",
     issue.description ?? ""
-  ].join("\n");
+  ].filter(isNotNullOrUndefined).join("\n");
 };
 var displayItem = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
