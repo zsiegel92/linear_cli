@@ -15,7 +15,7 @@ async function getTempFilePath(prefix = "myapp-") {
 async function getUserSelections({
   items,
   fzfArgs = [
-    // "--no-sort",
+    "--no-sort",
     "--no-mouse",
     "--wrap",
     "--ansi",
@@ -264,7 +264,7 @@ var previewItem = (issue, teamColors, teamProjectSlugs) => {
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
     [underline(bold(issue.project?.name ?? "")), `(${projectSlug})`].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
-    blue(bold(issue.title)),
+    [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
     bold(issue.branchName),
     bold(issue.url ?? ""),
     "\n",
@@ -278,7 +278,9 @@ var displayItem = (issue, teamColors, teamProjectSlugs) => {
     issue.assignee?.displayName ?? "UNASSIGNED",
     issue.team.key,
     projectSlug
-  ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ")}] ${blue(issue.title)}`;
+  ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ")}]  ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(
+    issue.title
+  )}`;
 };
 var getTeamColors = (issues) => {
   const teamColors = new Map(

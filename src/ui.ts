@@ -23,7 +23,9 @@ export const previewItem = (
       .filter(isNotNullOrUndefined)
       .map((item) => teamColor(item))
       .join(" - "),
-    blue(bold(issue.title)),
+    [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null]
+      .filter(isNotNullOrUndefined)
+      .join(" - "),
     bold(issue.branchName),
     bold(issue.url ?? ""),
     "\n",
@@ -45,7 +47,9 @@ export const displayItem = (
   ]
     .filter(isNotNullOrUndefined)
     .map((item) => teamColor(item))
-    .join(" - ")}] ${blue(issue.title)}`;
+    .join(" - ")}]  ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(
+    issue.title
+  )}`;
 };
 
 export const getTeamColors = (
