@@ -7,7 +7,7 @@ There are other Linear CLI tools, but this is the only one that wraps `fzf`. If 
 - Copy issue URL
 - Copy branch name
 
-![mov](docs/demo_video.mov)
+![mov](docs/demo_video.mp4)
 
 ## Install
 
