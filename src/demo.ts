@@ -34,7 +34,5 @@ async function main() {
   }
 }
 
-// npx tsx src/linear_cli.ts
-// or
-// npm run dev
+// npm run demo
 main().then(() => console.log("done"));

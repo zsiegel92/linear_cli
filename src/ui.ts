@@ -27,7 +27,7 @@ export const previewItem = (
       .filter(isNotNullOrUndefined)
       .join(" - "),
     issue.creator?.displayName
-      ? `Created by ${issue.creator?.displayName ?? "Unknown"} at ${new Date(
+      ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
           issue.createdAt
         ).toLocaleString()}`
       : null,
