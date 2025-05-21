@@ -2,6 +2,13 @@
 
 There are other Linear CLI tools, but this is the only one that wraps `fzf`. If you like `fzf`, this is the one for you.
 
+- View issues sorted by modified date
+- Open issue in browser
+- Copy issue URL
+- Copy branch name
+
+![mov](docs/demo_video.mov)
+
 ## Install
 
 ```bash
