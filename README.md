@@ -7,7 +7,11 @@ There are other Linear CLI tools, but this is the only one that wraps `fzf`. If 
 - Copy issue URL
 - Copy branch name
 
-<video src='docs/demo_video.mp4' width=400/>
+
+
+https://github.com/user-attachments/assets/8eac928f-0bd2-47e0-8137-6838afd7c7fd
+
+
 
 ## Install
 
