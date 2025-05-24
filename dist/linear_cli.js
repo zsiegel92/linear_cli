@@ -18,7 +18,7 @@ var linearStateSchema = z.object({
   type: z.string()
 });
 var linearCycleSchema = z.object({
-  name: z.string()
+  name: z.string().nullable()
 });
 var linearUserSchema = z.object({
   name: z.string(),
@@ -67,14 +67,27 @@ var actions = [
 ];
 
 // src/linear.ts
-async function getIssues() {
+import { z as z2 } from "zod";
+async function getIssues(onlyMine = false, projectId = void 0) {
   const linearClient = new LinearClient({
     apiKey: process.env.LINEAR_API_KEY
   });
   const linearGraphQLClient = linearClient.client;
-  const issues = await linearGraphQLClient.rawRequest(`
+  let filterArgs = "orderBy: updatedAt, first: 80";
+  const filterParts = [];
+  if (onlyMine) {
+    const me = await linearClient.viewer;
+    filterParts.push(`assignee: { id: { eq: "${me.id}" } }`);
+  }
+  if (projectId) {
+    filterParts.push(`project: { id: { eq: "${projectId}" } }`);
+  }
+  if (filterParts.length > 0) {
+    filterArgs += `, filter: { ${filterParts.join(", ")} }`;
+  }
+  const query = `
     query Me { 
-        issues(orderBy: updatedAt, first: 80) {
+        issues(${filterArgs}) {
             nodes { 
                 id 
                 title 
@@ -121,8 +134,35 @@ async function getIssues() {
             } 
         } 
     }
-  `);
+  `;
+  const issues = await linearGraphQLClient.rawRequest(query);
   return linearIssueResponseSchema.parse(issues).data.issues.nodes;
+}
+async function getProjects() {
+  const linearClient = new LinearClient({
+    apiKey: process.env.LINEAR_API_KEY
+  });
+  const linearGraphQLClient = linearClient.client;
+  const projects = await linearGraphQLClient.rawRequest(`
+    query GetProjects { 
+        projects(first: 100) {
+            nodes { 
+                id
+                name
+                color
+                slugId
+            } 
+        } 
+    }
+  `);
+  const projectResponseSchema = z2.object({
+    data: z2.object({
+      projects: z2.object({
+        nodes: z2.array(linearProjectSchema)
+      })
+    })
+  });
+  return projectResponseSchema.parse(projects).data.projects.nodes;
 }
 
 // src/utils.ts
@@ -155,9 +195,19 @@ function noColor(text) {
   return text;
 }
 var secondaryColors = [yellow, cyan, magenta];
+var preservedChars = [":", "(", ")", "[", "]", "{", "}"];
 function getSlug(text) {
   return text.split(":").map(
-    (part) => part.trim().split(" ").map((word) => word[0]).join("")
+    (part) => part.trim().split(" ").map((word) => {
+      let result = "";
+      for (let i = 0; i < word.length; i++) {
+        const char = word[i];
+        if (i === 0 || preservedChars.includes(char)) {
+          result += char;
+        }
+      }
+      return result;
+    }).join("")
   ).join("");
 }
 function isNotNullOrUndefined(value) {
@@ -212,6 +262,43 @@ var getTeamProjectSlugs = (issues) => {
   );
   return teamProjectSlugs;
 };
+var renderIssueList = (issues) => {
+  const teamColors = getTeamColors(issues);
+  const teamProjectSlugs = getTeamProjectSlugs(issues);
+  return issues.map((issue) => displayItem(issue, teamColors, teamProjectSlugs)).join("\n");
+};
+async function selectProject(projects, issues) {
+  const projectIssuesMap = /* @__PURE__ */ new Map();
+  projects.forEach((project) => {
+    projectIssuesMap.set(project.id, []);
+  });
+  issues.forEach((issue) => {
+    if (issue.project?.id) {
+      const projectIssues = projectIssuesMap.get(issue.project.id) || [];
+      projectIssues.push(issue);
+      projectIssuesMap.set(issue.project.id, projectIssues);
+    }
+  });
+  const selection = await getUserSelection({
+    items: projects.map((project) => ({
+      id: project.id,
+      display: `${project.name} (${projectIssuesMap.get(project.id)?.length || 0} issues)`,
+      fullItem: project
+    })),
+    getPreview: async (item) => {
+      const projectIssues = projectIssuesMap.get(item.fullItem.id) || [];
+      if (projectIssues.length === 0) {
+        return `${bold(item.fullItem.name)}
+
+No issues in this project`;
+      }
+      return `${bold(item.fullItem.name)}
+
+${renderIssueList(projectIssues)}`;
+    }
+  });
+  return selection;
+}
 async function selectIssue(issues) {
   const teamColors = getTeamColors(issues);
   const teamProjectSlugs = getTeamProjectSlugs(issues);
@@ -254,13 +341,48 @@ async function selectAction(selection) {
 }
 
 // src/linear_cli.ts
+import minimist from "minimist";
 config();
 async function main() {
+  const args = minimist(process.argv.slice(2), {
+    alias: {
+      h: "help",
+      m: "me",
+      p: "projects"
+    },
+    boolean: ["help", "me", "projects"]
+  });
+  if (args.help) {
+    console.log(`Linear CLI - Select and interact with Linear issues
+
+Usage: linear-cli [options]
+
+Options:
+  -h, --help      Show this help message
+  -m, --me        Show only issues assigned to you
+  -p, --projects  Select a project first, then show issues from that project
+`);
+    return;
+  }
   try {
+    let projectId;
+    if (args.projects) {
+      console.log("Fetching projects...");
+      const projects = await getProjects();
+      console.log("Fetching issues for project preview...");
+      const allIssues = await getIssues(false, void 0);
+      const projectSelection = await selectProject(projects, allIssues);
+      if (!projectSelection) {
+        console.log("No project selected");
+        return;
+      }
+      projectId = projectSelection.fullItem.id;
+      console.log(`Selected project: ${projectSelection.fullItem.name}`);
+    }
     console.log("Fetching issues...");
     let issues;
     try {
-      issues = await getIssues();
+      issues = await getIssues(args.me, projectId);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

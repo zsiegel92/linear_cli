@@ -11,7 +11,7 @@ const linearStateSchema = z.object({
 });
 
 const linearCycleSchema = z.object({
-  name: z.string(),
+  name: z.string().nullable(),
 });
 
 const linearUserSchema = z.object({
@@ -20,7 +20,7 @@ const linearUserSchema = z.object({
   displayName: z.string(),
 });
 
-const linearProjectSchema = z.object({
+export const linearProjectSchema = z.object({
   name: z.string(),
   color: z.string(),
   slugId: z.string(),

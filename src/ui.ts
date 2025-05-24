@@ -1,4 +1,4 @@
-import { type LinearIssue } from "./schema";
+import { type LinearIssue, linearProjectSchema } from "./schema";
 import {
   bold,
   blue,
@@ -10,6 +10,9 @@ import {
 } from "./utils";
 import { getUserSelection } from "fzf-ts";
 import { actions } from "./schema";
+import { z } from "zod";
+
+export type LinearProject = z.infer<typeof linearProjectSchema>;
 
 export const previewItem = (
   issue: LinearIssue,
@@ -19,7 +22,10 @@ export const previewItem = (
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
-    [underline(bold(issue.project?.name ?? "")), `(${projectSlug})`]
+    [
+      underline(bold(issue.project?.name ?? "<No Project Specified For Issue>")),
+      projectSlug ? `(${projectSlug})` : null,
+    ]
       .filter(isNotNullOrUndefined)
       .map((item) => teamColor(item))
       .join(" - "),
@@ -77,13 +83,58 @@ export const getTeamProjectSlugs = (
   issues: LinearIssue[]
 ): Map<string | undefined, string> => {
   const teamProjectSlugs = new Map(
-    issues.map((issue) => [
-      issue.project?.id,
-      getSlug(issue.project?.name ?? ""),
-    ])
+    issues.map((issue) => [issue.project?.id, getSlug(issue.project?.name)])
   );
   return teamProjectSlugs;
 };
+
+export const renderIssueList = (issues: LinearIssue[]): string => {
+  const teamColors = getTeamColors(issues);
+  const teamProjectSlugs = getTeamProjectSlugs(issues);
+
+  return issues
+    .map((issue) => displayItem(issue, teamColors, teamProjectSlugs))
+    .join("\n");
+};
+
+export async function selectProject(
+  projects: LinearProject[],
+  issues: LinearIssue[]
+) {
+  // Create a map from project ID to issues
+  const projectIssuesMap = new Map<string, LinearIssue[]>();
+
+  projects.forEach((project) => {
+    projectIssuesMap.set(project.id, []);
+  });
+
+  issues.forEach((issue) => {
+    if (issue.project?.id) {
+      const projectIssues = projectIssuesMap.get(issue.project.id) || [];
+      projectIssues.push(issue);
+      projectIssuesMap.set(issue.project.id, projectIssues);
+    }
+  });
+
+  const selection = await getUserSelection({
+    items: projects.map((project) => ({
+      id: project.id,
+      display: `${project.name} (${
+        projectIssuesMap.get(project.id)?.length || 0
+      } issues)`,
+      fullItem: project,
+    })),
+    getPreview: async (item) => {
+      const projectIssues = projectIssuesMap.get(item.fullItem.id) || [];
+      if (projectIssues.length === 0) {
+        return `${bold(item.fullItem.name)}\n\nNo issues in this project`;
+      }
+      return `${bold(item.fullItem.name)}\n\n${renderIssueList(projectIssues)}`;
+    },
+  });
+
+  return selection;
+}
 
 export async function selectIssue(issues: LinearIssue[]) {
   const teamColors = getTeamColors(issues);

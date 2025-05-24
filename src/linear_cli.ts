@@ -1,17 +1,58 @@
 import { config } from "dotenv";
 import { checkIfFzfIsInstalled } from "fzf-ts";
-import { getIssues } from "./linear";
+import { getIssues, getProjects } from "./linear";
 import { copyToClipboard, openInBrowser } from "./utils";
-import { selectIssue, selectAction } from "./ui";
+import { selectIssue, selectAction, selectProject } from "./ui";
 import { LinearIssue } from "./schema";
+import minimist from "minimist";
 config();
 
 async function main() {
+  const args = minimist(process.argv.slice(2), {
+    alias: {
+      h: "help",
+      m: "me",
+      p: "projects",
+    },
+    boolean: ["help", "me", "projects"],
+  });
+
+  if (args.help) {
+    console.log(`Linear CLI - Select and interact with Linear issues
+
+Usage: linear-cli [options]
+
+Options:
+  -h, --help      Show this help message
+  -m, --me        Show only issues assigned to you
+  -p, --projects  Select a project first, then show issues from that project
+`);
+    return;
+  }
+
   try {
+    let projectId: string | undefined;
+
+    // If projects flag is set, first select a project
+    if (args.projects) {
+      console.log("Fetching projects...");
+      const projects = await getProjects();
+      console.log("Fetching issues for project preview...");
+      const allIssues = await getIssues(false, undefined);
+
+      const projectSelection = await selectProject(projects, allIssues);
+      if (!projectSelection) {
+        console.log("No project selected");
+        return;
+      }
+      projectId = projectSelection.fullItem.id;
+      console.log(`Selected project: ${projectSelection.fullItem.name}`);
+    }
+
     console.log("Fetching issues...");
     let issues: LinearIssue[];
     try {
-      issues = await getIssues();
+      issues = await getIssues(args.me, projectId);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

@@ -1,5 +1,6 @@
 import { LinearClient, Issue } from "@linear/sdk";
-import { linearIssueResponseSchema } from "./schema";
+import { linearIssueResponseSchema, linearProjectSchema } from "./schema";
+import { z } from "zod";
 
 export async function getIssue(issueId: string) {
   const linearClient = new LinearClient({
@@ -17,9 +18,25 @@ export async function getIssues(
     apiKey: process.env.LINEAR_API_KEY,
   });
   const linearGraphQLClient = linearClient.client;
-  const issues = await linearGraphQLClient.rawRequest(`
+  
+  // Build filter object
+  let filterArgs = "orderBy: updatedAt, first: 80";
+  const filterParts = [];
+  
+  if (onlyMine) {
+    const me = await linearClient.viewer;
+    filterParts.push(`assignee: { id: { eq: "${me.id}" } }`);
+  }
+  if (projectId) {
+    filterParts.push(`project: { id: { eq: "${projectId}" } }`);
+  }  
+  if (filterParts.length > 0) {
+    filterArgs += `, filter: { ${filterParts.join(", ")} }`;
+  }
+  
+  const query = `
     query Me { 
-        issues(orderBy: updatedAt, first: 80) {
+        issues(${filterArgs}) {
             nodes { 
                 id 
                 title 
@@ -66,8 +83,40 @@ export async function getIssues(
             } 
         } 
     }
-  `);
+  `;
+  
+  const issues = await linearGraphQLClient.rawRequest(query);
   return linearIssueResponseSchema.parse(issues).data.issues.nodes;
+}
+
+export async function getProjects() {
+  const linearClient = new LinearClient({
+    apiKey: process.env.LINEAR_API_KEY,
+  });
+  const linearGraphQLClient = linearClient.client;
+  
+  const projects = await linearGraphQLClient.rawRequest(`
+    query GetProjects { 
+        projects(first: 100) {
+            nodes { 
+                id
+                name
+                color
+                slugId
+            } 
+        } 
+    }
+  `);
+  
+  const projectResponseSchema = z.object({
+    data: z.object({
+      projects: z.object({
+        nodes: z.array(linearProjectSchema),
+      }),
+    }),
+  });
+  
+  return projectResponseSchema.parse(projects).data.projects.nodes;
 }
 
 const getIssuesDirect = async () => {

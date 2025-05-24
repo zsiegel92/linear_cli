@@ -51,18 +51,28 @@ export const colors = [red, green, blue, yellow, cyan, magenta];
 export const primaryColors = [red, green, blue];
 export const secondaryColors = [yellow, cyan, magenta];
 
-export function getSlug(text: string) {
+const preservedChars = ":()[]{}";
+
+export function getSlug(text: string| undefined) {
   // Transforms "My Project" to "MP"
   // Transforms "My Project: Doing things, Doing thing 1" to "MPDtDt1"
+  // Preserves special characters: "My Project (C&C)" to "MP(C&C)"
+  if (!text) {
+    return "";
+  }
   return text
-    .split(":")
-    .map((part) =>
-      part
-        .trim()
-        .split(" ")
-        .map((word) => word[0])
-        .join("")
-    )
+    .trim()
+    .split(" ")
+    .map((word) => {
+      let result = "";
+      for (let i = 0; i < word.length; i++) {
+        const char = word[i];
+        if (i === 0 || preservedChars.includes(char)) {
+          result += char;
+        }
+      }
+      return result;
+    })
     .join("");
 }
 
