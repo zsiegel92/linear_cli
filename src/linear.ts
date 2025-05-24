@@ -9,7 +9,10 @@ export async function getIssue(issueId: string) {
   return issue;
 }
 
-export async function getIssues() {
+export async function getIssues(
+  onlyMine: boolean = false,
+  projectId: string | undefined = undefined
+) {
   const linearClient = new LinearClient({
     apiKey: process.env.LINEAR_API_KEY,
   });
