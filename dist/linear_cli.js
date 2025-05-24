@@ -195,20 +195,21 @@ function noColor(text) {
   return text;
 }
 var secondaryColors = [yellow, cyan, magenta];
-var preservedChars = [":", "(", ")", "[", "]", "{", "}"];
+var preservedChars = ":()[]{}";
 function getSlug(text) {
-  return text.split(":").map(
-    (part) => part.trim().split(" ").map((word) => {
-      let result = "";
-      for (let i = 0; i < word.length; i++) {
-        const char = word[i];
-        if (i === 0 || preservedChars.includes(char)) {
-          result += char;
-        }
+  if (!text) {
+    return "";
+  }
+  return text.trim().split(" ").map((word) => {
+    let result = "";
+    for (let i = 0; i < word.length; i++) {
+      const char = word[i];
+      if (i === 0 || preservedChars.includes(char)) {
+        result += char;
       }
-      return result;
-    }).join("")
-  ).join("");
+    }
+    return result;
+  }).join("");
 }
 function isNotNullOrUndefined(value) {
   return value !== null && value !== void 0;
@@ -220,7 +221,10 @@ var previewItem = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
-    [underline(bold(issue.project?.name ?? "")), `(${projectSlug})`].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
+    [
+      underline(bold(issue.project?.name ?? "<No Project Specified For Issue>")),
+      projectSlug ? `(${projectSlug})` : null
+    ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
     [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
     issue.creator?.displayName ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
       issue.createdAt
@@ -255,10 +259,7 @@ var getTeamColors = (issues) => {
 };
 var getTeamProjectSlugs = (issues) => {
   const teamProjectSlugs = new Map(
-    issues.map((issue) => [
-      issue.project?.id,
-      getSlug(issue.project?.name ?? "")
-    ])
+    issues.map((issue) => [issue.project?.id, getSlug(issue.project?.name)])
   );
   return teamProjectSlugs;
 };
