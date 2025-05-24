@@ -8,7 +8,7 @@ import {
   getSlug,
   isNotNullOrUndefined,
 } from "./utils";
-import { getUserSelections } from "./fzf-selection";
+import { getUserSelection } from "fzf-ts";
 import { actions } from "./schema";
 
 export const previewItem = (
@@ -88,7 +88,7 @@ export const getTeamProjectSlugs = (
 export async function selectIssue(issues: LinearIssue[]) {
   const teamColors = getTeamColors(issues);
   const teamProjectSlugs = getTeamProjectSlugs(issues);
-  const selection = await getUserSelections({
+  const selection = await getUserSelection({
     items: issues.map((issue) => ({
       id: issue.id,
       display: displayItem(issue, teamColors, teamProjectSlugs),
@@ -102,7 +102,7 @@ export async function selectIssue(issues: LinearIssue[]) {
 }
 
 export async function selectAction(selection: LinearIssue) {
-  const action = await getUserSelections({
+  const action = await getUserSelection({
     items: actions.map((action) => {
       switch (action) {
         case "copy-branch-name":
