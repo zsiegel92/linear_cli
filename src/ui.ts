@@ -23,7 +23,9 @@ export const previewItem = (
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
     [
-      underline(bold(issue.project?.name ?? "<No Project Specified For Issue>")),
+      underline(
+        bold(issue.project?.name ?? "<No Project Specified For Issue>")
+      ),
       projectSlug ? `(${projectSlug})` : null,
     ]
       .filter(isNotNullOrUndefined)
@@ -101,13 +103,11 @@ export async function selectProject(
   projects: LinearProject[],
   issues: LinearIssue[]
 ) {
-  // Create a map from project ID to issues
   const projectIssuesMap = new Map<string, LinearIssue[]>();
 
   projects.forEach((project) => {
     projectIssuesMap.set(project.id, []);
   });
-
   issues.forEach((issue) => {
     if (issue.project?.id) {
       const projectIssues = projectIssuesMap.get(issue.project.id) || [];
@@ -115,15 +115,23 @@ export async function selectProject(
       projectIssuesMap.set(issue.project.id, projectIssues);
     }
   });
-
   const selection = await getUserSelection({
-    items: projects.map((project) => ({
-      id: project.id,
-      display: `${project.name} (${
-        projectIssuesMap.get(project.id)?.length || 0
-      } issues)`,
-      fullItem: project,
-    })),
+    items: projects.map((project) => {
+      const projectIssues = projectIssuesMap.get(project.id) || [];
+      const lastUpdated =
+        projectIssues.length > 0 ? new Date(projectIssues[0].updatedAt) : null;
+      const updatedString = lastUpdated
+        ? ` updated ${new Date(lastUpdated).toLocaleDateString()}`
+        : "";
+      return {
+        id: project.id,
+        display: [
+          blue(project.name),
+          `(${projectIssues.length} issue${projectIssues.length===1? '': 's'}${updatedString})`,
+        ].join(" - "),
+        fullItem: project,
+      };
+    }),
     getPreview: async (item) => {
       const projectIssues = projectIssuesMap.get(item.fullItem.id) || [];
       if (projectIssues.length === 0) {

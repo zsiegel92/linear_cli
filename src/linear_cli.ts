@@ -29,18 +29,17 @@ Options:
 `);
     return;
   }
-
   try {
+    let issues: LinearIssue[];
     let projectId: string | undefined;
-
-    // If projects flag is set, first select a project
     if (args.projects) {
       console.log("Fetching projects...");
-      const projects = await getProjects();
+      const [projects, issues] = await Promise.all([
+        getProjects(),
+        getIssues(false, undefined),
+      ]);
       console.log("Fetching issues for project preview...");
-      const allIssues = await getIssues(false, undefined);
-
-      const projectSelection = await selectProject(projects, allIssues);
+      const projectSelection = await selectProject(projects, issues);
       if (!projectSelection) {
         console.log("No project selected");
         return;
@@ -50,7 +49,6 @@ Options:
     }
 
     console.log("Fetching issues...");
-    let issues: LinearIssue[];
     try {
       issues = await getIssues(args.me, projectId);
     } catch (err) {

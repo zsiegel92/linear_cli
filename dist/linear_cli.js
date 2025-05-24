@@ -91,7 +91,6 @@ async function getIssues(onlyMine = false, projectId = void 0) {
             nodes { 
                 id 
                 title 
-                updatedAt
                 description
                 branchName
                 createdAt
@@ -222,7 +221,9 @@ var previewItem = (issue, teamColors, teamProjectSlugs) => {
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
     [
-      underline(bold(issue.project?.name ?? "<No Project Specified For Issue>")),
+      underline(
+        bold(issue.project?.name ?? "<No Project Specified For Issue>")
+      ),
       projectSlug ? `(${projectSlug})` : null
     ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
     [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
@@ -281,11 +282,19 @@ async function selectProject(projects, issues) {
     }
   });
   const selection = await getUserSelection({
-    items: projects.map((project) => ({
-      id: project.id,
-      display: `${project.name} (${projectIssuesMap.get(project.id)?.length || 0} issues)`,
-      fullItem: project
-    })),
+    items: projects.map((project) => {
+      const projectIssues = projectIssuesMap.get(project.id) || [];
+      const lastUpdated = projectIssues.length > 0 ? new Date(projectIssues[0].updatedAt) : null;
+      const updatedString = lastUpdated ? ` updated ${new Date(lastUpdated).toLocaleDateString()}` : "";
+      return {
+        id: project.id,
+        display: [
+          blue(project.name),
+          `(${projectIssues.length} issue${projectIssues.length === 1 ? "" : "s"}${updatedString})`
+        ].join(" - "),
+        fullItem: project
+      };
+    }),
     getPreview: async (item) => {
       const projectIssues = projectIssuesMap.get(item.fullItem.id) || [];
       if (projectIssues.length === 0) {
@@ -366,13 +375,16 @@ Options:
     return;
   }
   try {
+    let issues;
     let projectId;
     if (args.projects) {
       console.log("Fetching projects...");
-      const projects = await getProjects();
+      const [projects, issues2] = await Promise.all([
+        getProjects(),
+        getIssues(false, void 0)
+      ]);
       console.log("Fetching issues for project preview...");
-      const allIssues = await getIssues(false, void 0);
-      const projectSelection = await selectProject(projects, allIssues);
+      const projectSelection = await selectProject(projects, issues2);
       if (!projectSelection) {
         console.log("No project selected");
         return;
@@ -381,7 +393,6 @@ Options:
       console.log(`Selected project: ${projectSelection.fullItem.name}`);
     }
     console.log("Fetching issues...");
-    let issues;
     try {
       issues = await getIssues(args.me, projectId);
     } catch (err) {

@@ -40,7 +40,6 @@ export async function getIssues(
             nodes { 
                 id 
                 title 
-                updatedAt
                 description
                 branchName
                 createdAt
