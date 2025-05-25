@@ -23,6 +23,7 @@
     "@linear/sdk": "^27.0.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
+    "express": "^5.1.0",
     "fzf-ts": "^1.0.3",
     "minimist": "^1.2.8",
     "tsx": "^4.17.0",
@@ -30,6 +31,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/express": "^5.0.2",
     "@types/minimist": "^1.2.5",
     "@types/node": "^22.4.1",
     "tsup": "^8.4.0"

@@ -64,3 +64,19 @@ export const actions = [
   "open-in-browser",
   "copy-issue-url",
 ] as const;
+
+export type LinearAuth =
+  | {
+      apiKey: string;
+    }
+  | {
+      accessToken: string;
+    };
+
+export const linearAuthResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number(),
+  scope: z.string(),
+});
+export type LinearAuthResponse = z.infer<typeof linearAuthResponseSchema>;

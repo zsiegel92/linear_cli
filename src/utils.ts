@@ -5,7 +5,7 @@ export function copyToClipboard(text: string) {
 }
 
 export function openInBrowser(url: string) {
-  return exec(`open ${url}`);
+  return exec(`open "${url}"`);
 }
 
 export function bold(text: string) {
