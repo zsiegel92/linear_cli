@@ -1,4 +1,4 @@
-import { type LinearIssue, linearProjectSchema } from "./schema";
+import { type LinearIssue, linearProjectSchema, Action } from "./schema";
 import {
   bold,
   blue,
@@ -8,8 +8,10 @@ import {
   getSlug,
   isNotNullOrUndefined,
   showNumberOfDaysAgo,
+  copyToClipboard,
+  openInBrowser,
 } from "./utils";
-import { getUserSelection } from "fzf-ts";
+import { getUserSelection, defaultFzfArgs } from "fzf-ts";
 import { actions } from "./schema";
 import { z } from "zod";
 
@@ -164,41 +166,81 @@ export async function selectIssue(issues: LinearIssue[]) {
     getPreview: async (item) => {
       return previewIssue(item.fullItem, teamColors, teamProjectSlugs);
     },
-    fzfArgs: [
-      "--preview-window=right:30%",
-      "--no-sort",
-      "--no-mouse",
-      "--wrap",
-      "--ansi",
-      "--bind",
-      "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down",
-    ],
+    fzfArgs: [...defaultFzfArgs, "--preview-window=right:30%"],
   });
   return selection;
 }
 
-export async function selectAction(selection: LinearIssue) {
+export async function selectAction(
+  selection: LinearIssue,
+  alreadyDoneActions: Set<Action>
+) {
   const action = await getUserSelection({
     items: actions.map((action) => {
+      const alreadyDoneBadge = alreadyDoneActions.has(action) ? "✅" : "";
       switch (action) {
         case "copy-branch-name":
           return {
             id: action,
-            display: `Copy branch name (${selection.branchName})`,
+            display: `${alreadyDoneBadge}Copy branch name (${selection.branchName})`,
           };
         case "open-in-browser":
           return {
             id: action,
-            display: `Open in browser (${selection.url})`,
+            display: `${alreadyDoneBadge}Open in browser (${selection.url})`,
           };
         case "copy-issue-url":
           return {
             id: action,
-            display: `Copy issue URL (${selection.url})`,
+            display: `${alreadyDoneBadge}Copy issue URL (${selection.url})`,
           };
       }
     }),
     getPreview: undefined,
+    fzfArgs: [...defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"],
   });
   return action?.id ?? null;
+}
+
+export async function selectAndTakeAction(
+  selectedIssue: LinearIssue,
+  alreadyDoneActions: Set<Action>
+): Promise<Action | null> {
+  const action = await selectAction(selectedIssue, alreadyDoneActions);
+  if (!action) {
+    console.log("No action selected");
+    return null;
+  }
+  switch (action) {
+    case "copy-branch-name":
+      copyToClipboard(selectedIssue.branchName);
+      console.log(
+        `Copied branch name to clipboard (${selectedIssue.branchName})`
+      );
+      break;
+    case "open-in-browser":
+      openInBrowser(selectedIssue.url);
+      console.log(`Opened in browser (${selectedIssue.url})`);
+      break;
+    case "copy-issue-url":
+      copyToClipboard(selectedIssue.url);
+      console.log(`Copied issue URL to clipboard (${selectedIssue.url})`);
+      break;
+  }
+  return action;
+}
+
+export async function selectAndTakeActionLoop(
+  selectedIssue: LinearIssue,
+  looping: boolean
+) {
+  const doneActions = new Set<Action>();
+  while (true) {
+    const action = await selectAndTakeAction(selectedIssue, doneActions);
+    if (!looping || !action) {
+      break;
+    }
+    doneActions.add(action);
+  }
+  return Array.from(doneActions);
 }

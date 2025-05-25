@@ -229,7 +229,7 @@ function showNumberOfDaysAgo(dateString) {
 }
 
 // src/ui.ts
-import { getUserSelection } from "fzf-ts";
+import { getUserSelection, defaultFzfArgs } from "fzf-ts";
 var previewIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
@@ -336,42 +336,71 @@ async function selectIssue(issues) {
     getPreview: async (item) => {
       return previewIssue(item.fullItem, teamColors, teamProjectSlugs);
     },
-    fzfArgs: [
-      "--preview-window=right:30%",
-      "--no-sort",
-      "--no-mouse",
-      "--wrap",
-      "--ansi",
-      "--bind",
-      "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down"
-    ]
+    fzfArgs: [...defaultFzfArgs, "--preview-window=right:30%"]
   });
   return selection;
 }
-async function selectAction(selection) {
+async function selectAction(selection, alreadyDoneActions) {
   const action = await getUserSelection({
     items: actions.map((action2) => {
+      const alreadyDoneBadge = alreadyDoneActions.has(action2) ? "\u2705" : "";
       switch (action2) {
         case "copy-branch-name":
           return {
             id: action2,
-            display: `Copy branch name (${selection.branchName})`
+            display: `${alreadyDoneBadge}Copy branch name (${selection.branchName})`
           };
         case "open-in-browser":
           return {
             id: action2,
-            display: `Open in browser (${selection.url})`
+            display: `${alreadyDoneBadge}Open in browser (${selection.url})`
           };
         case "copy-issue-url":
           return {
             id: action2,
-            display: `Copy issue URL (${selection.url})`
+            display: `${alreadyDoneBadge}Copy issue URL (${selection.url})`
           };
       }
     }),
-    getPreview: void 0
+    getPreview: void 0,
+    fzfArgs: [...defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"]
   });
   return action?.id ?? null;
+}
+async function selectAndTakeAction(selectedIssue, alreadyDoneActions) {
+  const action = await selectAction(selectedIssue, alreadyDoneActions);
+  if (!action) {
+    console.log("No action selected");
+    return null;
+  }
+  switch (action) {
+    case "copy-branch-name":
+      copyToClipboard(selectedIssue.branchName);
+      console.log(
+        `Copied branch name to clipboard (${selectedIssue.branchName})`
+      );
+      break;
+    case "open-in-browser":
+      openInBrowser(selectedIssue.url);
+      console.log(`Opened in browser (${selectedIssue.url})`);
+      break;
+    case "copy-issue-url":
+      copyToClipboard(selectedIssue.url);
+      console.log(`Copied issue URL to clipboard (${selectedIssue.url})`);
+      break;
+  }
+  return action;
+}
+async function selectAndTakeActionLoop(selectedIssue, looping) {
+  const doneActions = /* @__PURE__ */ new Set();
+  while (true) {
+    const action = await selectAndTakeAction(selectedIssue, doneActions);
+    if (!looping || !action) {
+      break;
+    }
+    doneActions.add(action);
+  }
+  return Array.from(doneActions);
 }
 
 // src/linear_cli.ts
@@ -382,9 +411,10 @@ async function main() {
     alias: {
       h: "help",
       m: "me",
-      p: "projects"
+      p: "projects",
+      l: "loop"
     },
-    boolean: ["help", "me", "projects"]
+    boolean: ["help", "me", "projects", "loop"]
   });
   if (args.help) {
     console.log(`Linear CLI - Select and interact with Linear issues
@@ -395,6 +425,7 @@ Options:
   -h, --help      Show this help message
   -m, --me        Show only issues assigned to you
   -p, --projects  Select a project first, then show issues from that project
+  -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
 `);
     return;
   }
@@ -429,29 +460,11 @@ Options:
       console.log("No issue selected");
       return;
     }
-    const action = await selectAction(selection.fullItem);
-    if (!action) {
-      console.log("No action selected");
-      return;
-    }
-    switch (action) {
-      case "copy-branch-name":
-        copyToClipboard(selection.fullItem.branchName);
-        console.log(
-          `Copied branch name to clipboard (${selection.fullItem.branchName})`
-        );
-        break;
-      case "open-in-browser":
-        openInBrowser(selection.fullItem.url);
-        console.log(`Opened in browser (${selection.fullItem.url})`);
-        break;
-      case "copy-issue-url":
-        copyToClipboard(selection.fullItem.url);
-        console.log(
-          `Copied issue URL to clipboard (${selection.fullItem.url})`
-        );
-        break;
-    }
+    const doneActions = await selectAndTakeActionLoop(
+      selection.fullItem,
+      args.loop
+    );
+    console.log(`Done actions: ${doneActions.join(", ")}`);
   } catch (err) {
     if (!process.env.LINEAR_API_KEY) {
       throw new Error(

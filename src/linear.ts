@@ -1,4 +1,4 @@
-import { LinearClient, Issue } from "@linear/sdk";
+import { LinearClient } from "@linear/sdk";
 import { linearIssueResponseSchema, linearProjectSchema } from "./schema";
 import { z } from "zod";
 
@@ -18,22 +18,18 @@ export async function getIssues(
     apiKey: process.env.LINEAR_API_KEY,
   });
   const linearGraphQLClient = linearClient.client;
-  
-  // Build filter object
   let filterArgs = "orderBy: updatedAt, first: 80";
   const filterParts = [];
-  
   if (onlyMine) {
     const me = await linearClient.viewer;
     filterParts.push(`assignee: { id: { eq: "${me.id}" } }`);
   }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
-  }  
+  }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
   }
-  
   const query = `
     query Me { 
         issues(${filterArgs}) {
@@ -83,7 +79,6 @@ export async function getIssues(
         } 
     }
   `;
-  
   const issues = await linearGraphQLClient.rawRequest(query);
   return linearIssueResponseSchema.parse(issues).data.issues.nodes;
 }
@@ -93,7 +88,6 @@ export async function getProjects() {
     apiKey: process.env.LINEAR_API_KEY,
   });
   const linearGraphQLClient = linearClient.client;
-  
   const projects = await linearGraphQLClient.rawRequest(`
     query GetProjects { 
         projects(first: 100) {
@@ -106,7 +100,6 @@ export async function getProjects() {
         } 
     }
   `);
-  
   const projectResponseSchema = z.object({
     data: z.object({
       projects: z.object({
@@ -114,20 +107,5 @@ export async function getProjects() {
       }),
     }),
   });
-  
   return projectResponseSchema.parse(projects).data.projects.nodes;
 }
-
-const getIssuesDirect = async () => {
-  const enrichIssue = async (issue: Issue) => {
-    const assignee = await issue.assignee;
-    const team = await issue.team;
-    const project = await issue.project;
-  };
-  const linearClient = new LinearClient({
-    apiKey: process.env.LINEAR_API_KEY,
-  });
-  const issues = await linearClient.issues();
-  issues.nodes.forEach(enrichIssue);
-  return issues;
-};

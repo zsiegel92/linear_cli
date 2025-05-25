@@ -64,3 +64,5 @@ export const actions = [
   "open-in-browser",
   "copy-issue-url",
 ] as const;
+
+export type Action = (typeof actions)[number];
