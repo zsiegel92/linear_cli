@@ -7,6 +7,7 @@ import {
   noColor,
   getSlug,
   isNotNullOrUndefined,
+  showNumberOfDaysAgo,
 } from "./utils";
 import { getUserSelection } from "fzf-ts";
 import { actions } from "./schema";
@@ -14,7 +15,7 @@ import { z } from "zod";
 
 export type LinearProject = z.infer<typeof linearProjectSchema>;
 
-export const previewItem = (
+export const previewIssue = (
   issue: LinearIssue,
   teamColors: Map<string, (text: string) => string>,
   teamProjectSlugs: Map<string | undefined, string>
@@ -39,6 +40,7 @@ export const previewItem = (
           issue.createdAt
         ).toLocaleString()}`
       : null,
+    issue.updatedAt ? `Updated ${showNumberOfDaysAgo(issue.updatedAt)}` : null,
     bold(issue.branchName),
     bold(issue.url ?? ""),
     "\n",
@@ -48,23 +50,27 @@ export const previewItem = (
     .join("\n");
 };
 
-export const displayItem = (
+export const displayIssue = (
   issue: LinearIssue,
   teamColors: Map<string, (text: string) => string>,
   teamProjectSlugs: Map<string | undefined, string>
 ) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
-  return `[${[
+  const numberDaysAgoUpdatedMessage = issue.updatedAt
+    ? ` (${showNumberOfDaysAgo(issue.updatedAt)})`
+    : "";
+  const metadataPrefix = [
     issue.assignee?.displayName ?? "UNASSIGNED",
     issue.team.key,
     projectSlug,
   ]
     .filter(isNotNullOrUndefined)
     .map((item) => teamColor(item))
-    .join(" - ")}]  ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(
-    issue.title
-  )}`;
+    .join(" - ");
+  return `[${metadataPrefix}] ${
+    issue.estimate ? `(${issue.estimate}) ` : ""
+  }${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
 
 export const getTeamColors = (
@@ -95,7 +101,7 @@ export const renderIssueList = (issues: LinearIssue[]): string => {
   const teamProjectSlugs = getTeamProjectSlugs(issues);
 
   return issues
-    .map((issue) => displayItem(issue, teamColors, teamProjectSlugs))
+    .map((issue) => displayIssue(issue, teamColors, teamProjectSlugs))
     .join("\n");
 };
 
@@ -127,7 +133,9 @@ export async function selectProject(
         id: project.id,
         display: [
           blue(project.name),
-          `(${projectIssues.length} issue${projectIssues.length===1? '': 's'}${updatedString})`,
+          `(${projectIssues.length} issue${
+            projectIssues.length === 1 ? "" : "s"
+          }${updatedString})`,
         ].join(" - "),
         fullItem: project,
       };
@@ -150,12 +158,21 @@ export async function selectIssue(issues: LinearIssue[]) {
   const selection = await getUserSelection({
     items: issues.map((issue) => ({
       id: issue.id,
-      display: displayItem(issue, teamColors, teamProjectSlugs),
+      display: displayIssue(issue, teamColors, teamProjectSlugs),
       fullItem: issue,
     })),
     getPreview: async (item) => {
-      return previewItem(item.fullItem, teamColors, teamProjectSlugs);
+      return previewIssue(item.fullItem, teamColors, teamProjectSlugs);
     },
+    fzfArgs: [
+      "--preview-window=right:30%",
+      "--no-sort",
+      "--no-mouse",
+      "--wrap",
+      "--ansi",
+      "--bind",
+      "alt-up:preview-up,alt-down:preview-down,alt-u:preview-page-up,alt-d:preview-page-down",
+    ],
   });
   return selection;
 }
