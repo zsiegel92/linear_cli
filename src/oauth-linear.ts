@@ -11,7 +11,7 @@ const CALLBACK_ROUTE = "/token";
 // TODO: store on disk somewhere, maybe ~/.config/linear-select-issue-cli/oauth-token.txt
 
 const RANDOM_STATE = Math.random().toString(36).substring(2, 15);
-export async function getAuthToken(): Promise<LinearAuthResponse> {
+export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse> {
   return new Promise((resolve, reject) => {
     const app = express();
     app.get(CALLBACK_ROUTE, async (req, res) => {
@@ -62,8 +62,19 @@ export async function getAuthToken(): Promise<LinearAuthResponse> {
         state: RANDOM_STATE,
         redirect_uri: REDIRECT_URI,
       };
-      const authUrl = `https://linear.app/oauth/authorize?${qs.stringify(params)}`;
+      const authUrl = `https://linear.app/oauth/authorize?${qs.stringify(
+        params
+      )}`;
       openInBrowser(authUrl);
     });
   });
+}
+
+export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse> {
+  return {
+    access_token: "123",
+    token_type: "Bearer",
+    expires_in: 3600,
+    scope: "read",
+  };
 }
