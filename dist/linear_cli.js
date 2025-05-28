@@ -2584,8 +2584,7 @@ function showNumberOfDaysAgo(dateString) {
 // src/oauth-linear.ts
 var import_qs = __toESM(require_lib());
 var import_crypto = require("crypto");
-var CLIENT_ID = process.env.LINEAR_CLIENT_ID;
-var CLIENT_SECRET = process.env.LINEAR_CLIENT_SECRET;
+var CLIENT_ID = "5550832bef77c4187b8e4c71734348e3";
 var REDIRECT_URI = "http://localhost:3002/token";
 var PORT = 3002;
 var CALLBACK_ROUTE = "/token";
