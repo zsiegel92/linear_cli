@@ -9,8 +9,7 @@ const CLIENT_SECRET = process.env.LINEAR_CLIENT_SECRET;
 const REDIRECT_URI = "http://localhost:3002/token";
 const PORT = 3002;
 const CALLBACK_ROUTE = "/token";
-
-// TODO: store on disk somewhere, maybe ~/.config/linear-select-issue-cli/oauth-token.txt
+const SUCCESS_MESSAGE = "Login successful. You can close this window. Your OAuth token is stored at `~/.config/linear-select-issue-cli/oauth-token.json`"
 
 export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse> {
   const randomState = Math.random().toString(36).substring(2, 15);
@@ -47,7 +46,7 @@ export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse
         }
         const data = await tokenRes.json();
         const parsedData = linearAuthResponseSchema.parse(data);
-        res.send("Login successful. You can close this window.");
+        res.send(SUCCESS_MESSAGE);
         server.close();
         resolve(parsedData);
       } catch (err: any) {
@@ -111,7 +110,7 @@ export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse
         }
         const data = await tokenRes.json();
         const parsedData = linearAuthResponseSchema.parse(data);
-        res.send("Login successful. You can close this window.");
+        res.send(SUCCESS_MESSAGE);
         server.close();
         resolve(parsedData);
       } catch (err: any) {

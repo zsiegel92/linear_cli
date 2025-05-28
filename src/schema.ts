@@ -64,6 +64,7 @@ export const actions = [
   "open-in-browser",
   "copy-issue-url",
 ] as const;
+export type Action = (typeof actions)[number];
 
 export type LinearAuth =
   | {
@@ -80,4 +81,12 @@ export const linearAuthResponseSchema = z.object({
   scope: z.string(),
 });
 export type LinearAuthResponse = z.infer<typeof linearAuthResponseSchema>;
-export type Action = (typeof actions)[number];
+
+export const linearAuthResponseWithExpiryDateSchema =
+  linearAuthResponseSchema.extend({
+    expiryDate: z.coerce.date(),
+  });
+
+export type LinearAuthResponseWithExpiryDate = z.infer<
+  typeof linearAuthResponseWithExpiryDateSchema
+>;

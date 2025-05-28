@@ -5,8 +5,11 @@ import {
 } from "./schema";
 import { LinearClient } from "@linear/sdk";
 import { z } from "zod";
+import { getOrSetToken } from "./token-cache";
 
-function getAuth(): LinearAuth {
+let _clientSingleton: LinearClient;
+
+async function getAuth(): Promise<LinearAuth> {
   if (process.env.LINEAR_OAUTH_TOKEN) {
     console.log("Using OAuth token");
     return {
@@ -19,12 +22,24 @@ function getAuth(): LinearAuth {
       apiKey: process.env.LINEAR_API_KEY,
     };
   }
-  throw new Error("No Linear API key or OAuth token found");
+  console.log("Getting OAuth token");
+  const authResponse = await getOrSetToken();
+  return {
+    accessToken: authResponse.access_token,
+  };
 }
 
-export async function getIssue(issueId: string) {
-  const auth = getAuth();
+async function getAuthenticatedClient() {
+  if (_clientSingleton) {
+    return _clientSingleton;
+  }
+  const auth = await getAuth();
   const linearClient = new LinearClient(auth);
+  _clientSingleton = linearClient;
+  return linearClient;
+}
+export async function getIssue(issueId: string) {
+  const linearClient = await getAuthenticatedClient();
   const issue = await linearClient.issue(issueId);
   return issue;
 }
@@ -33,8 +48,7 @@ export async function getIssues(
   onlyMine: boolean = false,
   projectId: string | undefined = undefined
 ) {
-  const auth = getAuth();
-  const linearClient = new LinearClient(auth);
+  const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
 
   // Build filter object
@@ -107,8 +121,7 @@ export async function getIssues(
 }
 
 export async function getProjects() {
-  const auth = getAuth();
-  const linearClient = new LinearClient(auth);
+  const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
 
   const projects = await linearGraphQLClient.rawRequest(`

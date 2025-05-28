@@ -1,10 +1,8 @@
-import { config } from "dotenv";
 import { checkIfFzfIsInstalled } from "fzf-ts";
 import { getIssues, getProjects } from "./linear";
 import { selectIssue, selectProject, selectAndTakeActionLoop } from "./ui";
 import type { LinearIssue } from "./schema";
 import minimist from "minimist";
-config();
 
 async function main() {
   const args = minimist(process.argv.slice(2), {

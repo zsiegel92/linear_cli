@@ -1,7 +1,5 @@
-import { config } from "dotenv";
 import { selectIssue,  selectAndTakeActionLoop } from "./ui";
 import { issues } from "./demo.mock";
-config();
 
 async function main() {
   console.log(`Found ${issues.length} issues`);
