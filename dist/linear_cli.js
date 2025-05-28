@@ -1,17 +1,12 @@
 #!/usr/bin/env node
+"use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
-var __commonJS = (cb, mod) => function __require2() {
+var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 var __copyProps = (to, from, except, desc) => {
@@ -33,23 +28,23 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 
 // node_modules/es-errors/type.js
 var require_type = __commonJS({
-  "node_modules/es-errors/type.js"(exports, module) {
+  "node_modules/es-errors/type.js"(exports2, module2) {
     "use strict";
-    module.exports = TypeError;
+    module2.exports = TypeError;
   }
 });
 
 // node_modules/object-inspect/util.inspect.js
 var require_util_inspect = __commonJS({
-  "node_modules/object-inspect/util.inspect.js"(exports, module) {
+  "node_modules/object-inspect/util.inspect.js"(exports2, module2) {
     "use strict";
-    module.exports = __require("util").inspect;
+    module2.exports = require("util").inspect;
   }
 });
 
 // node_modules/object-inspect/index.js
 var require_object_inspect = __commonJS({
-  "node_modules/object-inspect/index.js"(exports, module) {
+  "node_modules/object-inspect/index.js"(exports2, module2) {
     "use strict";
     var hasMap = typeof Map === "function" && Map.prototype;
     var mapSizeDescriptor = Object.getOwnPropertyDescriptor && hasMap ? Object.getOwnPropertyDescriptor(Map.prototype, "size") : null;
@@ -115,7 +110,7 @@ var require_object_inspect = __commonJS({
       "double": /(["\\])/g,
       single: /(['\\])/g
     };
-    module.exports = function inspect_(obj, options, depth, seen) {
+    module2.exports = function inspect_(obj, options, depth, seen) {
       var opts = options || {};
       if (has(opts, "quoteStyle") && !has(quotes, opts.quoteStyle)) {
         throw new TypeError('option "quoteStyle" must be "single" or "double"');
@@ -581,7 +576,7 @@ var require_object_inspect = __commonJS({
 
 // node_modules/side-channel-list/index.js
 var require_side_channel_list = __commonJS({
-  "node_modules/side-channel-list/index.js"(exports, module) {
+  "node_modules/side-channel-list/index.js"(exports2, module2) {
     "use strict";
     var inspect = require_object_inspect();
     var $TypeError = require_type();
@@ -632,7 +627,7 @@ var require_side_channel_list = __commonJS({
         return listGetNode(objects, key, true);
       }
     };
-    module.exports = function getSideChannelList() {
+    module2.exports = function getSideChannelList() {
       var $o;
       var channel = {
         assert: function(key) {
@@ -675,113 +670,113 @@ var require_side_channel_list = __commonJS({
 
 // node_modules/es-object-atoms/index.js
 var require_es_object_atoms = __commonJS({
-  "node_modules/es-object-atoms/index.js"(exports, module) {
+  "node_modules/es-object-atoms/index.js"(exports2, module2) {
     "use strict";
-    module.exports = Object;
+    module2.exports = Object;
   }
 });
 
 // node_modules/es-errors/index.js
 var require_es_errors = __commonJS({
-  "node_modules/es-errors/index.js"(exports, module) {
+  "node_modules/es-errors/index.js"(exports2, module2) {
     "use strict";
-    module.exports = Error;
+    module2.exports = Error;
   }
 });
 
 // node_modules/es-errors/eval.js
 var require_eval = __commonJS({
-  "node_modules/es-errors/eval.js"(exports, module) {
+  "node_modules/es-errors/eval.js"(exports2, module2) {
     "use strict";
-    module.exports = EvalError;
+    module2.exports = EvalError;
   }
 });
 
 // node_modules/es-errors/range.js
 var require_range = __commonJS({
-  "node_modules/es-errors/range.js"(exports, module) {
+  "node_modules/es-errors/range.js"(exports2, module2) {
     "use strict";
-    module.exports = RangeError;
+    module2.exports = RangeError;
   }
 });
 
 // node_modules/es-errors/ref.js
 var require_ref = __commonJS({
-  "node_modules/es-errors/ref.js"(exports, module) {
+  "node_modules/es-errors/ref.js"(exports2, module2) {
     "use strict";
-    module.exports = ReferenceError;
+    module2.exports = ReferenceError;
   }
 });
 
 // node_modules/es-errors/syntax.js
 var require_syntax = __commonJS({
-  "node_modules/es-errors/syntax.js"(exports, module) {
+  "node_modules/es-errors/syntax.js"(exports2, module2) {
     "use strict";
-    module.exports = SyntaxError;
+    module2.exports = SyntaxError;
   }
 });
 
 // node_modules/es-errors/uri.js
 var require_uri = __commonJS({
-  "node_modules/es-errors/uri.js"(exports, module) {
+  "node_modules/es-errors/uri.js"(exports2, module2) {
     "use strict";
-    module.exports = URIError;
+    module2.exports = URIError;
   }
 });
 
 // node_modules/math-intrinsics/abs.js
 var require_abs = __commonJS({
-  "node_modules/math-intrinsics/abs.js"(exports, module) {
+  "node_modules/math-intrinsics/abs.js"(exports2, module2) {
     "use strict";
-    module.exports = Math.abs;
+    module2.exports = Math.abs;
   }
 });
 
 // node_modules/math-intrinsics/floor.js
 var require_floor = __commonJS({
-  "node_modules/math-intrinsics/floor.js"(exports, module) {
+  "node_modules/math-intrinsics/floor.js"(exports2, module2) {
     "use strict";
-    module.exports = Math.floor;
+    module2.exports = Math.floor;
   }
 });
 
 // node_modules/math-intrinsics/max.js
 var require_max = __commonJS({
-  "node_modules/math-intrinsics/max.js"(exports, module) {
+  "node_modules/math-intrinsics/max.js"(exports2, module2) {
     "use strict";
-    module.exports = Math.max;
+    module2.exports = Math.max;
   }
 });
 
 // node_modules/math-intrinsics/min.js
 var require_min = __commonJS({
-  "node_modules/math-intrinsics/min.js"(exports, module) {
+  "node_modules/math-intrinsics/min.js"(exports2, module2) {
     "use strict";
-    module.exports = Math.min;
+    module2.exports = Math.min;
   }
 });
 
 // node_modules/math-intrinsics/pow.js
 var require_pow = __commonJS({
-  "node_modules/math-intrinsics/pow.js"(exports, module) {
+  "node_modules/math-intrinsics/pow.js"(exports2, module2) {
     "use strict";
-    module.exports = Math.pow;
+    module2.exports = Math.pow;
   }
 });
 
 // node_modules/math-intrinsics/round.js
 var require_round = __commonJS({
-  "node_modules/math-intrinsics/round.js"(exports, module) {
+  "node_modules/math-intrinsics/round.js"(exports2, module2) {
     "use strict";
-    module.exports = Math.round;
+    module2.exports = Math.round;
   }
 });
 
 // node_modules/math-intrinsics/isNaN.js
 var require_isNaN = __commonJS({
-  "node_modules/math-intrinsics/isNaN.js"(exports, module) {
+  "node_modules/math-intrinsics/isNaN.js"(exports2, module2) {
     "use strict";
-    module.exports = Number.isNaN || function isNaN2(a) {
+    module2.exports = Number.isNaN || function isNaN2(a) {
       return a !== a;
     };
   }
@@ -789,10 +784,10 @@ var require_isNaN = __commonJS({
 
 // node_modules/math-intrinsics/sign.js
 var require_sign = __commonJS({
-  "node_modules/math-intrinsics/sign.js"(exports, module) {
+  "node_modules/math-intrinsics/sign.js"(exports2, module2) {
     "use strict";
     var $isNaN = require_isNaN();
-    module.exports = function sign(number) {
+    module2.exports = function sign(number) {
       if ($isNaN(number) || number === 0) {
         return number;
       }
@@ -803,15 +798,15 @@ var require_sign = __commonJS({
 
 // node_modules/gopd/gOPD.js
 var require_gOPD = __commonJS({
-  "node_modules/gopd/gOPD.js"(exports, module) {
+  "node_modules/gopd/gOPD.js"(exports2, module2) {
     "use strict";
-    module.exports = Object.getOwnPropertyDescriptor;
+    module2.exports = Object.getOwnPropertyDescriptor;
   }
 });
 
 // node_modules/gopd/index.js
 var require_gopd = __commonJS({
-  "node_modules/gopd/index.js"(exports, module) {
+  "node_modules/gopd/index.js"(exports2, module2) {
     "use strict";
     var $gOPD = require_gOPD();
     if ($gOPD) {
@@ -821,13 +816,13 @@ var require_gopd = __commonJS({
         $gOPD = null;
       }
     }
-    module.exports = $gOPD;
+    module2.exports = $gOPD;
   }
 });
 
 // node_modules/es-define-property/index.js
 var require_es_define_property = __commonJS({
-  "node_modules/es-define-property/index.js"(exports, module) {
+  "node_modules/es-define-property/index.js"(exports2, module2) {
     "use strict";
     var $defineProperty = Object.defineProperty || false;
     if ($defineProperty) {
@@ -837,15 +832,15 @@ var require_es_define_property = __commonJS({
         $defineProperty = false;
       }
     }
-    module.exports = $defineProperty;
+    module2.exports = $defineProperty;
   }
 });
 
 // node_modules/has-symbols/shams.js
 var require_shams = __commonJS({
-  "node_modules/has-symbols/shams.js"(exports, module) {
+  "node_modules/has-symbols/shams.js"(exports2, module2) {
     "use strict";
-    module.exports = function hasSymbols() {
+    module2.exports = function hasSymbols() {
       if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
         return false;
       }
@@ -898,11 +893,11 @@ var require_shams = __commonJS({
 
 // node_modules/has-symbols/index.js
 var require_has_symbols = __commonJS({
-  "node_modules/has-symbols/index.js"(exports, module) {
+  "node_modules/has-symbols/index.js"(exports2, module2) {
     "use strict";
     var origSymbol = typeof Symbol !== "undefined" && Symbol;
     var hasSymbolSham = require_shams();
-    module.exports = function hasNativeSymbols() {
+    module2.exports = function hasNativeSymbols() {
       if (typeof origSymbol !== "function") {
         return false;
       }
@@ -922,24 +917,24 @@ var require_has_symbols = __commonJS({
 
 // node_modules/get-proto/Reflect.getPrototypeOf.js
 var require_Reflect_getPrototypeOf = __commonJS({
-  "node_modules/get-proto/Reflect.getPrototypeOf.js"(exports, module) {
+  "node_modules/get-proto/Reflect.getPrototypeOf.js"(exports2, module2) {
     "use strict";
-    module.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
+    module2.exports = typeof Reflect !== "undefined" && Reflect.getPrototypeOf || null;
   }
 });
 
 // node_modules/get-proto/Object.getPrototypeOf.js
 var require_Object_getPrototypeOf = __commonJS({
-  "node_modules/get-proto/Object.getPrototypeOf.js"(exports, module) {
+  "node_modules/get-proto/Object.getPrototypeOf.js"(exports2, module2) {
     "use strict";
     var $Object = require_es_object_atoms();
-    module.exports = $Object.getPrototypeOf || null;
+    module2.exports = $Object.getPrototypeOf || null;
   }
 });
 
 // node_modules/function-bind/implementation.js
 var require_implementation = __commonJS({
-  "node_modules/function-bind/implementation.js"(exports, module) {
+  "node_modules/function-bind/implementation.js"(exports2, module2) {
     "use strict";
     var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
     var toStr = Object.prototype.toString;
@@ -972,7 +967,7 @@ var require_implementation = __commonJS({
       }
       return str;
     };
-    module.exports = function bind(that) {
+    module2.exports = function bind(that) {
       var target = this;
       if (typeof target !== "function" || toStr.apply(target) !== funcType) {
         throw new TypeError(ERROR_MESSAGE + target);
@@ -1015,58 +1010,58 @@ var require_implementation = __commonJS({
 
 // node_modules/function-bind/index.js
 var require_function_bind = __commonJS({
-  "node_modules/function-bind/index.js"(exports, module) {
+  "node_modules/function-bind/index.js"(exports2, module2) {
     "use strict";
     var implementation = require_implementation();
-    module.exports = Function.prototype.bind || implementation;
+    module2.exports = Function.prototype.bind || implementation;
   }
 });
 
 // node_modules/call-bind-apply-helpers/functionCall.js
 var require_functionCall = __commonJS({
-  "node_modules/call-bind-apply-helpers/functionCall.js"(exports, module) {
+  "node_modules/call-bind-apply-helpers/functionCall.js"(exports2, module2) {
     "use strict";
-    module.exports = Function.prototype.call;
+    module2.exports = Function.prototype.call;
   }
 });
 
 // node_modules/call-bind-apply-helpers/functionApply.js
 var require_functionApply = __commonJS({
-  "node_modules/call-bind-apply-helpers/functionApply.js"(exports, module) {
+  "node_modules/call-bind-apply-helpers/functionApply.js"(exports2, module2) {
     "use strict";
-    module.exports = Function.prototype.apply;
+    module2.exports = Function.prototype.apply;
   }
 });
 
 // node_modules/call-bind-apply-helpers/reflectApply.js
 var require_reflectApply = __commonJS({
-  "node_modules/call-bind-apply-helpers/reflectApply.js"(exports, module) {
+  "node_modules/call-bind-apply-helpers/reflectApply.js"(exports2, module2) {
     "use strict";
-    module.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
+    module2.exports = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
   }
 });
 
 // node_modules/call-bind-apply-helpers/actualApply.js
 var require_actualApply = __commonJS({
-  "node_modules/call-bind-apply-helpers/actualApply.js"(exports, module) {
+  "node_modules/call-bind-apply-helpers/actualApply.js"(exports2, module2) {
     "use strict";
     var bind = require_function_bind();
     var $apply = require_functionApply();
     var $call = require_functionCall();
     var $reflectApply = require_reflectApply();
-    module.exports = $reflectApply || bind.call($call, $apply);
+    module2.exports = $reflectApply || bind.call($call, $apply);
   }
 });
 
 // node_modules/call-bind-apply-helpers/index.js
 var require_call_bind_apply_helpers = __commonJS({
-  "node_modules/call-bind-apply-helpers/index.js"(exports, module) {
+  "node_modules/call-bind-apply-helpers/index.js"(exports2, module2) {
     "use strict";
     var bind = require_function_bind();
     var $TypeError = require_type();
     var $call = require_functionCall();
     var $actualApply = require_actualApply();
-    module.exports = function callBindBasic(args) {
+    module2.exports = function callBindBasic(args) {
       if (args.length < 1 || typeof args[0] !== "function") {
         throw new $TypeError("a function is required");
       }
@@ -1077,7 +1072,7 @@ var require_call_bind_apply_helpers = __commonJS({
 
 // node_modules/dunder-proto/get.js
 var require_get = __commonJS({
-  "node_modules/dunder-proto/get.js"(exports, module) {
+  "node_modules/dunder-proto/get.js"(exports2, module2) {
     "use strict";
     var callBind = require_call_bind_apply_helpers();
     var gOPD = require_gopd();
@@ -1097,7 +1092,7 @@ var require_get = __commonJS({
     );
     var $Object = Object;
     var $getPrototypeOf = $Object.getPrototypeOf;
-    module.exports = desc && typeof desc.get === "function" ? callBind([desc.get]) : typeof $getPrototypeOf === "function" ? (
+    module2.exports = desc && typeof desc.get === "function" ? callBind([desc.get]) : typeof $getPrototypeOf === "function" ? (
       /** @type {import('./get')} */
       function getDunder(value) {
         return $getPrototypeOf(value == null ? value : $Object(value));
@@ -1108,12 +1103,12 @@ var require_get = __commonJS({
 
 // node_modules/get-proto/index.js
 var require_get_proto = __commonJS({
-  "node_modules/get-proto/index.js"(exports, module) {
+  "node_modules/get-proto/index.js"(exports2, module2) {
     "use strict";
     var reflectGetProto = require_Reflect_getPrototypeOf();
     var originalGetProto = require_Object_getPrototypeOf();
     var getDunderProto = require_get();
-    module.exports = reflectGetProto ? function getProto(O) {
+    module2.exports = reflectGetProto ? function getProto(O) {
       return reflectGetProto(O);
     } : originalGetProto ? function getProto(O) {
       if (!O || typeof O !== "object" && typeof O !== "function") {
@@ -1128,18 +1123,18 @@ var require_get_proto = __commonJS({
 
 // node_modules/hasown/index.js
 var require_hasown = __commonJS({
-  "node_modules/hasown/index.js"(exports, module) {
+  "node_modules/hasown/index.js"(exports2, module2) {
     "use strict";
     var call = Function.prototype.call;
     var $hasOwn = Object.prototype.hasOwnProperty;
     var bind = require_function_bind();
-    module.exports = bind.call(call, $hasOwn);
+    module2.exports = bind.call(call, $hasOwn);
   }
 });
 
 // node_modules/get-intrinsic/index.js
 var require_get_intrinsic = __commonJS({
-  "node_modules/get-intrinsic/index.js"(exports, module) {
+  "node_modules/get-intrinsic/index.js"(exports2, module2) {
     "use strict";
     var undefined2;
     var $Object = require_es_object_atoms();
@@ -1404,7 +1399,7 @@ var require_get_intrinsic = __commonJS({
       }
       throw new $SyntaxError("intrinsic " + name + " does not exist!");
     };
-    module.exports = function GetIntrinsic(name, allowMissing) {
+    module2.exports = function GetIntrinsic(name, allowMissing) {
       if (typeof name !== "string" || name.length === 0) {
         throw new $TypeError("intrinsic name must be a non-empty string");
       }
@@ -1470,12 +1465,12 @@ var require_get_intrinsic = __commonJS({
 
 // node_modules/call-bound/index.js
 var require_call_bound = __commonJS({
-  "node_modules/call-bound/index.js"(exports, module) {
+  "node_modules/call-bound/index.js"(exports2, module2) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var callBindBasic = require_call_bind_apply_helpers();
     var $indexOf = callBindBasic([GetIntrinsic("%String.prototype.indexOf%")]);
-    module.exports = function callBoundIntrinsic(name, allowMissing) {
+    module2.exports = function callBoundIntrinsic(name, allowMissing) {
       var intrinsic = (
         /** @type {(this: unknown, ...args: unknown[]) => unknown} */
         GetIntrinsic(name, !!allowMissing)
@@ -1493,7 +1488,7 @@ var require_call_bound = __commonJS({
 
 // node_modules/side-channel-map/index.js
 var require_side_channel_map = __commonJS({
-  "node_modules/side-channel-map/index.js"(exports, module) {
+  "node_modules/side-channel-map/index.js"(exports2, module2) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var callBound = require_call_bound();
@@ -1505,7 +1500,7 @@ var require_side_channel_map = __commonJS({
     var $mapHas = callBound("Map.prototype.has", true);
     var $mapDelete = callBound("Map.prototype.delete", true);
     var $mapSize = callBound("Map.prototype.size", true);
-    module.exports = !!$Map && /** @type {Exclude<import('.'), false>} */
+    module2.exports = !!$Map && /** @type {Exclude<import('.'), false>} */
     function getSideChannelMap() {
       var $m;
       var channel = {
@@ -1549,7 +1544,7 @@ var require_side_channel_map = __commonJS({
 
 // node_modules/side-channel-weakmap/index.js
 var require_side_channel_weakmap = __commonJS({
-  "node_modules/side-channel-weakmap/index.js"(exports, module) {
+  "node_modules/side-channel-weakmap/index.js"(exports2, module2) {
     "use strict";
     var GetIntrinsic = require_get_intrinsic();
     var callBound = require_call_bound();
@@ -1561,7 +1556,7 @@ var require_side_channel_weakmap = __commonJS({
     var $weakMapSet = callBound("WeakMap.prototype.set", true);
     var $weakMapHas = callBound("WeakMap.prototype.has", true);
     var $weakMapDelete = callBound("WeakMap.prototype.delete", true);
-    module.exports = $WeakMap ? (
+    module2.exports = $WeakMap ? (
       /** @type {Exclude<import('.'), false>} */
       function getSideChannelWeakMap() {
         var $wm;
@@ -1622,7 +1617,7 @@ var require_side_channel_weakmap = __commonJS({
 
 // node_modules/side-channel/index.js
 var require_side_channel = __commonJS({
-  "node_modules/side-channel/index.js"(exports, module) {
+  "node_modules/side-channel/index.js"(exports2, module2) {
     "use strict";
     var $TypeError = require_type();
     var inspect = require_object_inspect();
@@ -1630,7 +1625,7 @@ var require_side_channel = __commonJS({
     var getSideChannelMap = require_side_channel_map();
     var getSideChannelWeakMap = require_side_channel_weakmap();
     var makeChannel = getSideChannelWeakMap || getSideChannelMap || getSideChannelList;
-    module.exports = function getSideChannel() {
+    module2.exports = function getSideChannel() {
       var $channelData;
       var channel = {
         assert: function(key) {
@@ -1661,7 +1656,7 @@ var require_side_channel = __commonJS({
 
 // node_modules/qs/lib/formats.js
 var require_formats = __commonJS({
-  "node_modules/qs/lib/formats.js"(exports, module) {
+  "node_modules/qs/lib/formats.js"(exports2, module2) {
     "use strict";
     var replace = String.prototype.replace;
     var percentTwenties = /%20/g;
@@ -1669,7 +1664,7 @@ var require_formats = __commonJS({
       RFC1738: "RFC1738",
       RFC3986: "RFC3986"
     };
-    module.exports = {
+    module2.exports = {
       "default": Format.RFC3986,
       formatters: {
         RFC1738: function(value) {
@@ -1687,7 +1682,7 @@ var require_formats = __commonJS({
 
 // node_modules/qs/lib/utils.js
 var require_utils = __commonJS({
-  "node_modules/qs/lib/utils.js"(exports, module) {
+  "node_modules/qs/lib/utils.js"(exports2, module2) {
     "use strict";
     var formats = require_formats();
     var has = Object.prototype.hasOwnProperty;
@@ -1875,7 +1870,7 @@ var require_utils = __commonJS({
       }
       return fn(val);
     };
-    module.exports = {
+    module2.exports = {
       arrayToObject,
       assign,
       combine,
@@ -1892,7 +1887,7 @@ var require_utils = __commonJS({
 
 // node_modules/qs/lib/stringify.js
 var require_stringify = __commonJS({
-  "node_modules/qs/lib/stringify.js"(exports, module) {
+  "node_modules/qs/lib/stringify.js"(exports2, module2) {
     "use strict";
     var getSideChannel = require_side_channel();
     var utils = require_utils();
@@ -2107,7 +2102,7 @@ var require_stringify = __commonJS({
         strictNullHandling: typeof opts.strictNullHandling === "boolean" ? opts.strictNullHandling : defaults.strictNullHandling
       };
     };
-    module.exports = function(object, opts) {
+    module2.exports = function(object, opts) {
       var obj = object;
       var options = normalizeStringifyOptions(opts);
       var objKeys;
@@ -2175,7 +2170,7 @@ var require_stringify = __commonJS({
 
 // node_modules/qs/lib/parse.js
 var require_parse = __commonJS({
-  "node_modules/qs/lib/parse.js"(exports, module) {
+  "node_modules/qs/lib/parse.js"(exports2, module2) {
     "use strict";
     var utils = require_utils();
     var has = Object.prototype.hasOwnProperty;
@@ -2403,7 +2398,7 @@ var require_parse = __commonJS({
         throwOnLimitExceeded: typeof opts.throwOnLimitExceeded === "boolean" ? opts.throwOnLimitExceeded : false
       };
     };
-    module.exports = function(str, opts) {
+    module2.exports = function(str, opts) {
       var options = normalizeParseOptions(opts);
       if (str === "" || str === null || typeof str === "undefined") {
         return options.plainObjects ? { __proto__: null } : {};
@@ -2426,12 +2421,12 @@ var require_parse = __commonJS({
 
 // node_modules/qs/lib/index.js
 var require_lib = __commonJS({
-  "node_modules/qs/lib/index.js"(exports, module) {
+  "node_modules/qs/lib/index.js"(exports2, module2) {
     "use strict";
     var stringify = require_stringify();
     var parse = require_parse();
     var formats = require_formats();
-    module.exports = {
+    module2.exports = {
       formats,
       parse,
       stringify
@@ -2440,95 +2435,95 @@ var require_lib = __commonJS({
 });
 
 // src/linear_cli.ts
-import { checkIfFzfIsInstalled } from "fzf-ts";
+var import_fzf_ts2 = require("fzf-ts");
 
 // src/schema.ts
-import { z } from "zod";
-var linearTeamSchema = z.object({
-  name: z.string(),
-  key: z.string()
+var import_zod = require("zod");
+var linearTeamSchema = import_zod.z.object({
+  name: import_zod.z.string(),
+  key: import_zod.z.string()
 });
-var linearStateSchema = z.object({
-  name: z.string(),
-  type: z.string()
+var linearStateSchema = import_zod.z.object({
+  name: import_zod.z.string(),
+  type: import_zod.z.string()
 });
-var linearCycleSchema = z.object({
-  name: z.string().nullable()
+var linearCycleSchema = import_zod.z.object({
+  name: import_zod.z.string().nullable()
 });
-var linearUserSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  displayName: z.string()
+var linearUserSchema = import_zod.z.object({
+  name: import_zod.z.string(),
+  email: import_zod.z.string(),
+  displayName: import_zod.z.string()
 });
-var linearProjectSchema = z.object({
-  name: z.string(),
-  color: z.string(),
-  slugId: z.string(),
-  id: z.string()
+var linearProjectSchema = import_zod.z.object({
+  name: import_zod.z.string(),
+  color: import_zod.z.string(),
+  slugId: import_zod.z.string(),
+  id: import_zod.z.string()
 });
-var linearIssueSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  updatedAt: z.string(),
+var linearIssueSchema = import_zod.z.object({
+  id: import_zod.z.string(),
+  title: import_zod.z.string(),
+  updatedAt: import_zod.z.string(),
   assignee: linearUserSchema.nullable(),
   team: linearTeamSchema,
   state: linearStateSchema,
   cycle: linearCycleSchema.nullable(),
-  description: z.string().nullable(),
-  branchName: z.string(),
-  createdAt: z.string(),
-  estimate: z.number().nullable(),
-  priority: z.number().nullable(),
-  priorityLabel: z.string().nullable(),
-  startedAt: z.string().nullable(),
+  description: import_zod.z.string().nullable(),
+  branchName: import_zod.z.string(),
+  createdAt: import_zod.z.string(),
+  estimate: import_zod.z.number().nullable(),
+  priority: import_zod.z.number().nullable(),
+  priorityLabel: import_zod.z.string().nullable(),
+  startedAt: import_zod.z.string().nullable(),
   creator: linearUserSchema,
-  dueDate: z.string().nullable(),
-  url: z.string(),
+  dueDate: import_zod.z.string().nullable(),
+  url: import_zod.z.string(),
   project: linearProjectSchema.nullable()
 });
-var linearIssueResponseSchema = z.object({
-  data: z.object({
-    issues: z.object({
-      nodes: z.array(linearIssueSchema)
+var linearIssueResponseSchema = import_zod.z.object({
+  data: import_zod.z.object({
+    issues: import_zod.z.object({
+      nodes: import_zod.z.array(linearIssueSchema)
     })
   }),
-  headers: z.object({}),
-  status: z.number()
+  headers: import_zod.z.object({}),
+  status: import_zod.z.number()
 });
 var actions = [
   "copy-branch-name",
   "open-in-browser",
   "copy-issue-url"
 ];
-var linearAuthResponseSchema = z.object({
-  access_token: z.string(),
-  token_type: z.string(),
-  expires_in: z.number(),
-  scope: z.string()
+var linearAuthResponseSchema = import_zod.z.object({
+  access_token: import_zod.z.string(),
+  token_type: import_zod.z.string(),
+  expires_in: import_zod.z.number(),
+  scope: import_zod.z.string()
 });
 var linearAuthResponseWithExpiryDateSchema = linearAuthResponseSchema.extend({
-  expiryDate: z.coerce.date()
+  expiryDate: import_zod.z.coerce.date()
 });
 
 // src/linear.ts
-import { LinearClient } from "@linear/sdk";
-import { z as z2 } from "zod";
+var import_sdk = require("@linear/sdk");
+var import_zod2 = require("zod");
 
 // src/token-cache.ts
-import path from "path";
-import os from "os";
-import fs from "fs";
+var import_path = __toESM(require("path"));
+var import_os = __toESM(require("os"));
+var import_fs = __toESM(require("fs"));
 
 // src/oauth-linear.ts
-import express from "express";
+var import_express = __toESM(require("express"));
 
 // src/utils.ts
-import { exec } from "child_process";
+var import_child_process = require("child_process");
 function copyToClipboard(text) {
-  return exec(`echo ${text} | pbcopy`);
+  return (0, import_child_process.exec)(`echo ${text} | pbcopy`);
 }
 function openInBrowser(url) {
-  return exec(`open "${url}"`);
+  return (0, import_child_process.exec)(`open "${url}"`);
 }
 function bold(text) {
   return `\x1B[1m${text}\x1B[0m`;
@@ -2587,8 +2582,8 @@ function showNumberOfDaysAgo(dateString) {
 }
 
 // src/oauth-linear.ts
-var import_qs = __toESM(require_lib(), 1);
-import { createHash, randomBytes } from "crypto";
+var import_qs = __toESM(require_lib());
+var import_crypto = require("crypto");
 var CLIENT_ID = process.env.LINEAR_CLIENT_ID;
 var CLIENT_SECRET = process.env.LINEAR_CLIENT_SECRET;
 var REDIRECT_URI = "http://localhost:3002/token";
@@ -2600,7 +2595,7 @@ async function getAuthTokenWithClientIdOnly() {
   const codeChallenge = generateCodeChallenge(codeVerifier);
   const state = Math.random().toString(36).substring(2, 15);
   return new Promise((resolve, reject) => {
-    const app = express();
+    const app = (0, import_express.default)();
     app.get(CALLBACK_ROUTE, async (req, res) => {
       const code = req.query.code;
       const receivedState = req.query.state;
@@ -2660,29 +2655,29 @@ async function getAuthTokenWithClientIdOnly() {
   });
 }
 function generateCodeVerifier() {
-  return randomBytes(32).toString("base64url");
+  return (0, import_crypto.randomBytes)(32).toString("base64url");
 }
 function generateCodeChallenge(verifier) {
-  return createHash("sha256").update(verifier).digest("base64url");
+  return (0, import_crypto.createHash)("sha256").update(verifier).digest("base64url");
 }
 
 // src/token-cache.ts
-var TOKEN_FILEPATH = path.join(
-  os.homedir(),
+var TOKEN_FILEPATH = import_path.default.join(
+  import_os.default.homedir(),
   ".config",
   "linear-select-issue-cli",
   "oauth-token.json"
 );
 function storeToken(token) {
-  fs.writeFileSync(TOKEN_FILEPATH, JSON.stringify(token));
+  import_fs.default.writeFileSync(TOKEN_FILEPATH, JSON.stringify(token));
 }
 function getStoredToken() {
-  if (!fs.existsSync(TOKEN_FILEPATH)) {
+  if (!import_fs.default.existsSync(TOKEN_FILEPATH)) {
     return null;
   }
   try {
     const parsed = linearAuthResponseWithExpiryDateSchema.parse(
-      JSON.parse(fs.readFileSync(TOKEN_FILEPATH, "utf8"))
+      JSON.parse(import_fs.default.readFileSync(TOKEN_FILEPATH, "utf8"))
     );
     if (parsed.expiryDate < /* @__PURE__ */ new Date()) {
       return null;
@@ -2696,8 +2691,8 @@ function getExpiryDate(expires_in_secoonds) {
   return new Date(Date.now() + expires_in_secoonds * 1e3);
 }
 async function getOrSetToken() {
-  if (!fs.existsSync(TOKEN_FILEPATH)) {
-    fs.mkdirSync(path.dirname(TOKEN_FILEPATH), { recursive: true });
+  if (!import_fs.default.existsSync(TOKEN_FILEPATH)) {
+    import_fs.default.mkdirSync(import_path.default.dirname(TOKEN_FILEPATH), { recursive: true });
   }
   const token = getStoredToken();
   if (token) {
@@ -2738,7 +2733,7 @@ async function getAuthenticatedClient() {
     return _clientSingleton;
   }
   const auth = await getAuth();
-  const linearClient = new LinearClient(auth);
+  const linearClient = new import_sdk.LinearClient(auth);
   _clientSingleton = linearClient;
   return linearClient;
 }
@@ -2824,10 +2819,10 @@ async function getProjects() {
         } 
     }
   `);
-  const projectResponseSchema = z2.object({
-    data: z2.object({
-      projects: z2.object({
-        nodes: z2.array(linearProjectSchema)
+  const projectResponseSchema = import_zod2.z.object({
+    data: import_zod2.z.object({
+      projects: import_zod2.z.object({
+        nodes: import_zod2.z.array(linearProjectSchema)
       })
     })
   });
@@ -2835,7 +2830,7 @@ async function getProjects() {
 }
 
 // src/ui.ts
-import { getUserSelection, defaultFzfArgs } from "fzf-ts";
+var import_fzf_ts = require("fzf-ts");
 var previewIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
@@ -2902,7 +2897,7 @@ async function selectProject(projects, issues) {
       projectIssuesMap.set(issue.project.id, projectIssues);
     }
   });
-  const selection = await getUserSelection({
+  const selection = await (0, import_fzf_ts.getUserSelection)({
     items: projects.map((project) => {
       const projectIssues = projectIssuesMap.get(project.id) || [];
       const lastUpdated = projectIssues.length > 0 ? new Date(projectIssues[0].updatedAt) : null;
@@ -2933,7 +2928,7 @@ ${renderIssueList(projectIssues)}`;
 async function selectIssue(issues) {
   const teamColors = getTeamColors(issues);
   const teamProjectSlugs = getTeamProjectSlugs(issues);
-  const selection = await getUserSelection({
+  const selection = await (0, import_fzf_ts.getUserSelection)({
     items: issues.map((issue) => ({
       id: issue.id,
       display: displayIssue(issue, teamColors, teamProjectSlugs),
@@ -2942,12 +2937,12 @@ async function selectIssue(issues) {
     getPreview: async (item) => {
       return previewIssue(item.fullItem, teamColors, teamProjectSlugs);
     },
-    fzfArgs: [...defaultFzfArgs, "--preview-window=right:30%"]
+    fzfArgs: [...import_fzf_ts.defaultFzfArgs, "--preview-window=right:30%"]
   });
   return selection;
 }
 async function selectAction(selection, alreadyDoneActions) {
-  const action = await getUserSelection({
+  const action = await (0, import_fzf_ts.getUserSelection)({
     items: actions.map((action2) => {
       const alreadyDoneBadge = alreadyDoneActions.has(action2) ? "\u2705" : "";
       switch (action2) {
@@ -2969,7 +2964,7 @@ async function selectAction(selection, alreadyDoneActions) {
       }
     }),
     getPreview: void 0,
-    fzfArgs: [...defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"]
+    fzfArgs: [...import_fzf_ts.defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"]
   });
   return action?.id ?? null;
 }
@@ -3010,9 +3005,9 @@ async function selectAndTakeActionLoop(selectedIssue, looping) {
 }
 
 // src/linear_cli.ts
-import minimist from "minimist";
+var import_minimist = __toESM(require("minimist"));
 async function main() {
-  const args = minimist(process.argv.slice(2), {
+  const args = (0, import_minimist.default)(process.argv.slice(2), {
     alias: {
       h: "help",
       m: "me",
@@ -3080,7 +3075,7 @@ Options:
         Create a key at https://linear.app/current-ai/settings/account/security`
       );
     }
-    const fzfInstalled = await checkIfFzfIsInstalled();
+    const fzfInstalled = await (0, import_fzf_ts2.checkIfFzfIsInstalled)();
     if (!fzfInstalled) {
       throw new Error(
         "fzf is not installed! Install it with `brew install fzf`"

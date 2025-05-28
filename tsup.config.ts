@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 export default defineConfig({
   entry: ["src/linear_cli.ts"],
-  format: ["esm"],
+  format: ["cjs"],
   dts: false,
   splitting: false,
   clean: true,
