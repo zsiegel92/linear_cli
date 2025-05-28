@@ -51,27 +51,32 @@ export const colors = [red, green, blue, yellow, cyan, magenta];
 export const primaryColors = [red, green, blue];
 export const secondaryColors = [yellow, cyan, magenta];
 
-const preservedChars = ":()[]{}";
+// Transforms "My Project" to "MP"
+// Transforms "My Project: Doing things, Doing thing 1" to "MPDtDt1"
+// Transforms "Plans - Cool Things (Also Weird & Cool)" to "P-CT(AW&C)"
+// Preserves special characters: "My Project (C&C)" to "MP(C&C)"
+const PRESERVED = ":()[]{}-&";
 
-export function getSlug(text: string| undefined) {
-  // Transforms "My Project" to "MP"
-  // Transforms "My Project: Doing things, Doing thing 1" to "MPDtDt1"
-  // Preserves special characters: "My Project (C&C)" to "MP(C&C)"
-  if (!text) {
-    return "";
-  }
+export function getSlug(text?: string): string {
+  const preservedSet = new Set(PRESERVED);
+  if (!text) return "";
+
   return text
     .trim()
-    .split(" ")
+    .split(/\s+/)
     .map((word) => {
-      let result = "";
-      for (let i = 0; i < word.length; i++) {
-        const char = word[i];
-        if (i === 0 || preservedChars.includes(char)) {
-          result += char;
+      if (!word) return "";
+      let haveNonPreservedChar = false;
+      let accepted: string[] = [];
+      for (const char of word) {
+        if (preservedSet.has(char)) {
+          accepted.push(char);
+        } else if (!haveNonPreservedChar) {
+          haveNonPreservedChar = true;
+          accepted.push(char);
         }
       }
-      return result;
+      return accepted.join("");
     })
     .join("");
 }
@@ -84,4 +89,25 @@ export function isNotNullOrUndefined<T>(
 
 export function rightPad(text: string, length: number) {
   return text.padEnd(length, " ");
+}
+
+export function formatIsoDateString(dateString: string): string | null {
+  try {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
+  } catch (e) {
+    return null;
+  }
+}
+
+export function showNumberOfDaysAgo(dateString: string): string | null {
+  try {
+    const date = new Date(dateString);
+    const daysAgo = Math.floor(
+      (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return `${daysAgo} day${daysAgo === 1 ? "" : "s"} ago`;
+  } catch (e) {
+    return null;
+  }
 }

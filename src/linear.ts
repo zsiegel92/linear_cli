@@ -1,9 +1,9 @@
-import { LinearClient, Issue } from "@linear/sdk";
 import {
   linearIssueResponseSchema,
   linearProjectSchema,
   type LinearAuth,
 } from "./schema";
+import { LinearClient } from "@linear/sdk";
 import { z } from "zod";
 
 function getAuth(): LinearAuth {
@@ -134,16 +134,3 @@ export async function getProjects() {
 
   return projectResponseSchema.parse(projects).data.projects.nodes;
 }
-
-const getIssuesDirect = async () => {
-  const auth = getAuth();
-  const enrichIssue = async (issue: Issue) => {
-    const assignee = await issue.assignee;
-    const team = await issue.team;
-    const project = await issue.project;
-  };
-  const linearClient = new LinearClient(auth);
-  const issues = await linearClient.issues();
-  issues.nodes.forEach(enrichIssue);
-  return issues;
-};

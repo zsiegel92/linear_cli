@@ -1,6 +1,5 @@
 import { config } from "dotenv";
-import { copyToClipboard, openInBrowser } from "./utils";
-import { selectIssue, selectAction } from "./ui";
+import { selectIssue,  selectAndTakeActionLoop } from "./ui";
 import { issues } from "./demo.mock";
 config();
 
@@ -11,27 +10,8 @@ async function main() {
     console.log("No issue selected");
     return;
   }
-  const action = await selectAction(selection.fullItem);
-  if (!action) {
-    console.log("No action selected");
-    return;
-  }
-  switch (action) {
-    case "copy-branch-name":
-      copyToClipboard(selection.fullItem.branchName);
-      console.log(
-        `Copied branch name to clipboard (${selection.fullItem.branchName})`
-      );
-      break;
-    case "open-in-browser":
-      openInBrowser(selection.fullItem.url);
-      console.log(`Opened in browser (${selection.fullItem.url})`);
-      break;
-    case "copy-issue-url":
-      copyToClipboard(selection.fullItem.url);
-      console.log(`Copied issue URL to clipboard (${selection.fullItem.url})`);
-      break;
-  }
+  const doneActions = await selectAndTakeActionLoop(selection.fullItem, true);
+  console.log(`Done actions: ${doneActions.join(", ")}`);
 }
 
 // npm run demo

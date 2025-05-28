@@ -4,9 +4,6 @@
 import { config } from "dotenv";
 import { checkIfFzfIsInstalled } from "fzf-ts";
 
-// src/linear.ts
-import { LinearClient } from "@linear/sdk";
-
 // src/schema.ts
 import { z } from "zod";
 var linearTeamSchema = z.object({
@@ -65,13 +62,34 @@ var actions = [
   "open-in-browser",
   "copy-issue-url"
 ];
+var linearAuthResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number(),
+  scope: z.string()
+});
 
 // src/linear.ts
+import { LinearClient } from "@linear/sdk";
 import { z as z2 } from "zod";
+function getAuth() {
+  if (process.env.LINEAR_OAUTH_TOKEN) {
+    console.log("Using OAuth token");
+    return {
+      accessToken: process.env.LINEAR_OAUTH_TOKEN
+    };
+  }
+  if (process.env.LINEAR_API_KEY) {
+    console.log("Using API key");
+    return {
+      apiKey: process.env.LINEAR_API_KEY
+    };
+  }
+  throw new Error("No Linear API key or OAuth token found");
+}
 async function getIssues(onlyMine = false, projectId = void 0) {
-  const linearClient = new LinearClient({
-    apiKey: process.env.LINEAR_API_KEY
-  });
+  const auth = getAuth();
+  const linearClient = new LinearClient(auth);
   const linearGraphQLClient = linearClient.client;
   let filterArgs = "orderBy: updatedAt, first: 80";
   const filterParts = [];
@@ -138,9 +156,8 @@ async function getIssues(onlyMine = false, projectId = void 0) {
   return linearIssueResponseSchema.parse(issues).data.issues.nodes;
 }
 async function getProjects() {
-  const linearClient = new LinearClient({
-    apiKey: process.env.LINEAR_API_KEY
-  });
+  const auth = getAuth();
+  const linearClient = new LinearClient(auth);
   const linearGraphQLClient = linearClient.client;
   const projects = await linearGraphQLClient.rawRequest(`
     query GetProjects { 
@@ -170,7 +187,7 @@ function copyToClipboard(text) {
   return exec(`echo ${text} | pbcopy`);
 }
 function openInBrowser(url) {
-  return exec(`open ${url}`);
+  return exec(`open "${url}"`);
 }
 function bold(text) {
   return `\x1B[1m${text}\x1B[0m`;
@@ -194,29 +211,43 @@ function noColor(text) {
   return text;
 }
 var secondaryColors = [yellow, cyan, magenta];
-var preservedChars = ":()[]{}";
+var PRESERVED = ":()[]{}-&";
 function getSlug(text) {
-  if (!text) {
-    return "";
-  }
-  return text.trim().split(" ").map((word) => {
-    let result = "";
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (i === 0 || preservedChars.includes(char)) {
-        result += char;
+  const preservedSet = new Set(PRESERVED);
+  if (!text) return "";
+  return text.trim().split(/\s+/).map((word) => {
+    if (!word) return "";
+    let haveNonPreservedChar = false;
+    let accepted = [];
+    for (const char of word) {
+      if (preservedSet.has(char)) {
+        accepted.push(char);
+      } else if (!haveNonPreservedChar) {
+        haveNonPreservedChar = true;
+        accepted.push(char);
       }
     }
-    return result;
+    return accepted.join("");
   }).join("");
 }
 function isNotNullOrUndefined(value) {
   return value !== null && value !== void 0;
 }
+function showNumberOfDaysAgo(dateString) {
+  try {
+    const date = new Date(dateString);
+    const daysAgo = Math.floor(
+      (Date.now() - date.getTime()) / (1e3 * 60 * 60 * 24)
+    );
+    return `${daysAgo} day${daysAgo === 1 ? "" : "s"} ago`;
+  } catch (e) {
+    return null;
+  }
+}
 
 // src/ui.ts
-import { getUserSelection } from "fzf-ts";
-var previewItem = (issue, teamColors, teamProjectSlugs) => {
+import { getUserSelection, defaultFzfArgs } from "fzf-ts";
+var previewIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   return [
@@ -230,22 +261,23 @@ var previewItem = (issue, teamColors, teamProjectSlugs) => {
     issue.creator?.displayName ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
       issue.createdAt
     ).toLocaleString()}` : null,
+    issue.updatedAt ? `Updated ${showNumberOfDaysAgo(issue.updatedAt)}` : null,
     bold(issue.branchName),
     bold(issue.url ?? ""),
     "\n",
     issue.description ?? ""
   ].filter(isNotNullOrUndefined).join("\n");
 };
-var displayItem = (issue, teamColors, teamProjectSlugs) => {
+var displayIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
-  return `[${[
+  const numberDaysAgoUpdatedMessage = issue.updatedAt ? ` (${showNumberOfDaysAgo(issue.updatedAt)})` : "";
+  const metadataPrefix = [
     issue.assignee?.displayName ?? "UNASSIGNED",
     issue.team.key,
     projectSlug
-  ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ")}]  ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(
-    issue.title
-  )}`;
+  ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ");
+  return `[${metadataPrefix}] ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
 var getTeamColors = (issues) => {
   const teamColors = new Map(
@@ -267,7 +299,7 @@ var getTeamProjectSlugs = (issues) => {
 var renderIssueList = (issues) => {
   const teamColors = getTeamColors(issues);
   const teamProjectSlugs = getTeamProjectSlugs(issues);
-  return issues.map((issue) => displayItem(issue, teamColors, teamProjectSlugs)).join("\n");
+  return issues.map((issue) => displayIssue(issue, teamColors, teamProjectSlugs)).join("\n");
 };
 async function selectProject(projects, issues) {
   const projectIssuesMap = /* @__PURE__ */ new Map();
@@ -315,39 +347,77 @@ async function selectIssue(issues) {
   const selection = await getUserSelection({
     items: issues.map((issue) => ({
       id: issue.id,
-      display: displayItem(issue, teamColors, teamProjectSlugs),
+      display: displayIssue(issue, teamColors, teamProjectSlugs),
       fullItem: issue
     })),
     getPreview: async (item) => {
-      return previewItem(item.fullItem, teamColors, teamProjectSlugs);
-    }
+      return previewIssue(item.fullItem, teamColors, teamProjectSlugs);
+    },
+    fzfArgs: [...defaultFzfArgs, "--preview-window=right:30%"]
   });
   return selection;
 }
-async function selectAction(selection) {
+async function selectAction(selection, alreadyDoneActions) {
   const action = await getUserSelection({
     items: actions.map((action2) => {
+      const alreadyDoneBadge = alreadyDoneActions.has(action2) ? "\u2705" : "";
       switch (action2) {
         case "copy-branch-name":
           return {
             id: action2,
-            display: `Copy branch name (${selection.branchName})`
+            display: `${alreadyDoneBadge}Copy branch name (${selection.branchName})`
           };
         case "open-in-browser":
           return {
             id: action2,
-            display: `Open in browser (${selection.url})`
+            display: `${alreadyDoneBadge}Open in browser (${selection.url})`
           };
         case "copy-issue-url":
           return {
             id: action2,
-            display: `Copy issue URL (${selection.url})`
+            display: `${alreadyDoneBadge}Copy issue URL (${selection.url})`
           };
       }
     }),
-    getPreview: void 0
+    getPreview: void 0,
+    fzfArgs: [...defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"]
   });
   return action?.id ?? null;
+}
+async function selectAndTakeAction(selectedIssue, alreadyDoneActions) {
+  const action = await selectAction(selectedIssue, alreadyDoneActions);
+  if (!action) {
+    console.log("No action selected");
+    return null;
+  }
+  switch (action) {
+    case "copy-branch-name":
+      copyToClipboard(selectedIssue.branchName);
+      console.log(
+        `Copied branch name to clipboard (${selectedIssue.branchName})`
+      );
+      break;
+    case "open-in-browser":
+      openInBrowser(selectedIssue.url);
+      console.log(`Opened in browser (${selectedIssue.url})`);
+      break;
+    case "copy-issue-url":
+      copyToClipboard(selectedIssue.url);
+      console.log(`Copied issue URL to clipboard (${selectedIssue.url})`);
+      break;
+  }
+  return action;
+}
+async function selectAndTakeActionLoop(selectedIssue, looping) {
+  const doneActions = /* @__PURE__ */ new Set();
+  while (true) {
+    const action = await selectAndTakeAction(selectedIssue, doneActions);
+    if (!looping || !action) {
+      break;
+    }
+    doneActions.add(action);
+  }
+  return Array.from(doneActions);
 }
 
 // src/linear_cli.ts
@@ -358,9 +428,10 @@ async function main() {
     alias: {
       h: "help",
       m: "me",
-      p: "projects"
+      p: "projects",
+      l: "loop"
     },
-    boolean: ["help", "me", "projects"]
+    boolean: ["help", "me", "projects", "loop"]
   });
   if (args.help) {
     console.log(`Linear CLI - Select and interact with Linear issues
@@ -371,6 +442,7 @@ Options:
   -h, --help      Show this help message
   -m, --me        Show only issues assigned to you
   -p, --projects  Select a project first, then show issues from that project
+  -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
 `);
     return;
   }
@@ -405,29 +477,11 @@ Options:
       console.log("No issue selected");
       return;
     }
-    const action = await selectAction(selection.fullItem);
-    if (!action) {
-      console.log("No action selected");
-      return;
-    }
-    switch (action) {
-      case "copy-branch-name":
-        copyToClipboard(selection.fullItem.branchName);
-        console.log(
-          `Copied branch name to clipboard (${selection.fullItem.branchName})`
-        );
-        break;
-      case "open-in-browser":
-        openInBrowser(selection.fullItem.url);
-        console.log(`Opened in browser (${selection.fullItem.url})`);
-        break;
-      case "copy-issue-url":
-        copyToClipboard(selection.fullItem.url);
-        console.log(
-          `Copied issue URL to clipboard (${selection.fullItem.url})`
-        );
-        break;
-    }
+    const doneActions = await selectAndTakeActionLoop(
+      selection.fullItem,
+      args.loop
+    );
+    console.log(`Done actions: ${doneActions.join(", ")}`);
   } catch (err) {
     if (!process.env.LINEAR_API_KEY) {
       throw new Error(

@@ -80,3 +80,4 @@ export const linearAuthResponseSchema = z.object({
   scope: z.string(),
 });
 export type LinearAuthResponse = z.infer<typeof linearAuthResponseSchema>;
+export type Action = (typeof actions)[number];

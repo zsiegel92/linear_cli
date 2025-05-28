@@ -1,9 +1,8 @@
 import { config } from "dotenv";
 import { checkIfFzfIsInstalled } from "fzf-ts";
 import { getIssues, getProjects } from "./linear";
-import { copyToClipboard, openInBrowser } from "./utils";
-import { selectIssue, selectAction, selectProject } from "./ui";
-import { LinearIssue } from "./schema";
+import { selectIssue, selectProject, selectAndTakeActionLoop } from "./ui";
+import type { LinearIssue } from "./schema";
 import minimist from "minimist";
 config();
 
@@ -13,8 +12,9 @@ async function main() {
       h: "help",
       m: "me",
       p: "projects",
+      l: "loop",
     },
-    boolean: ["help", "me", "projects"],
+    boolean: ["help", "me", "projects", "loop"],
   });
 
   if (args.help) {
@@ -26,6 +26,7 @@ Options:
   -h, --help      Show this help message
   -m, --me        Show only issues assigned to you
   -p, --projects  Select a project first, then show issues from that project
+  -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
 `);
     return;
   }
@@ -61,29 +62,11 @@ Options:
       console.log("No issue selected");
       return;
     }
-    const action = await selectAction(selection.fullItem);
-    if (!action) {
-      console.log("No action selected");
-      return;
-    }
-    switch (action) {
-      case "copy-branch-name":
-        copyToClipboard(selection.fullItem.branchName);
-        console.log(
-          `Copied branch name to clipboard (${selection.fullItem.branchName})`
-        );
-        break;
-      case "open-in-browser":
-        openInBrowser(selection.fullItem.url);
-        console.log(`Opened in browser (${selection.fullItem.url})`);
-        break;
-      case "copy-issue-url":
-        copyToClipboard(selection.fullItem.url);
-        console.log(
-          `Copied issue URL to clipboard (${selection.fullItem.url})`
-        );
-        break;
-    }
+    const doneActions = await selectAndTakeActionLoop(
+      selection.fullItem,
+      args.loop
+    );
+    console.log(`Done actions: ${doneActions.join(", ")}`);
   } catch (err) {
     if (!process.env.LINEAR_API_KEY) {
       throw new Error(
