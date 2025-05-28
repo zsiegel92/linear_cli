@@ -1,8 +1,7 @@
-import { getAuthTokenWithClientSecret,getAuthTokenWithClientIdOnly } from "./oauth-linear";
+import { getAuthTokenWithClientIdOnly } from "./oauth-linear";
 
 async function main() {
-  // const token = await getAuthTokenWithClientSecret()
-  const token = await getAuthTokenWithClientIdOnly()
+  await getAuthTokenWithClientIdOnly()
   .then((token) => {
     console.log("Access Token:", token);
 	return token;
