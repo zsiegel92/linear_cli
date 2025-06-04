@@ -1,6 +1,6 @@
 {
   "name": "linear-select-issue-cli",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "author": "zsiegel",
   "prepublishOnly": "npm run build",
   "scripts": {
@@ -9,6 +9,7 @@
     "demo": "tsx src/demo.ts",
     "built": "node dist/linear_cli.js",
     "patch": "npm version patch",
+    "cleanCache": "npm cache clean --force",
     "pub": "npm publish --access public"
   },
   "bin": {
@@ -21,7 +22,7 @@
   "dependencies": {
     "@linear/sdk": "^27.0.0",
     "express": "^5.1.0",
-    "fzf-ts": "^1.0.5",
+    "fzf-ts": "^1.1.1",
     "minimist": "^1.2.8",
     "tsx": "^4.17.0",
     "typescript": "^5.8.3",
