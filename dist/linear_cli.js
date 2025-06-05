@@ -2443,10 +2443,31 @@ var linearTeamSchema = import_zod.z.object({
   name: import_zod.z.string(),
   key: import_zod.z.string()
 });
+var linearStateTypeSchema = import_zod.z.enum([
+  "triage",
+  "backlog",
+  "unstarted",
+  "started",
+  "completed",
+  "canceled"
+]);
+var stateIconMap = {
+  unstarted: "\u2B55\uFE0F",
+  triage: "\u203C\uFE0F",
+  backlog: "\u26D4\uFE0F",
+  started: "\u{1F7E1}",
+  completed: "\u{1F7E2}",
+  canceled: "\u274C"
+};
 var linearStateSchema = import_zod.z.object({
   name: import_zod.z.string(),
-  type: import_zod.z.string()
-});
+  type: linearStateTypeSchema
+}).transform((data) => ({
+  ...data,
+  get stateIcon() {
+    return stateIconMap[data.type] ?? "\u2753";
+  }
+}));
 var linearCycleSchema = import_zod.z.object({
   name: import_zod.z.string().nullable()
 });
@@ -2736,7 +2757,7 @@ async function getAuthenticatedClient() {
   _clientSingleton = linearClient;
   return linearClient;
 }
-async function getIssues(onlyMine = false, projectId = void 0) {
+async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
   let filterArgs = "orderBy: updatedAt, first: 80";
@@ -2748,9 +2769,13 @@ async function getIssues(onlyMine = false, projectId = void 0) {
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
+  if (!includeClosed) {
+    filterParts.push(`state: { type: { nin: ["completed", "canceled"] } }`);
+  }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
   }
+  console.log(filterArgs);
   const query = `
     query Me { 
         issues(${filterArgs}) {
@@ -2840,7 +2865,11 @@ var previewIssue = (issue, teamColors, teamProjectSlugs) => {
       ),
       projectSlug ? `(${projectSlug})` : null
     ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
-    [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
+    [
+      issue.state.stateIcon,
+      blue(bold(issue.title)),
+      issue.estimate ? `(${issue.estimate})` : null
+    ].filter(isNotNullOrUndefined).join(" - "),
     issue.creator?.displayName ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
       issue.createdAt
     ).toLocaleString()}` : null,
@@ -2860,7 +2889,7 @@ var displayIssue = (issue, teamColors, teamProjectSlugs) => {
     issue.team.key,
     projectSlug
   ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ");
-  return `[${metadataPrefix}] ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
+  return `${issue.state.stateIcon}[${metadataPrefix}] ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
 var getTeamColors = (issues) => {
   const teamColors = new Map(
@@ -3011,9 +3040,10 @@ async function main() {
       h: "help",
       m: "me",
       p: "projects",
-      l: "loop"
+      l: "loop",
+      a: "all"
     },
-    boolean: ["help", "me", "projects", "loop"]
+    boolean: ["help", "me", "projects", "loop", "all"]
   });
   if (args.help) {
     console.log(`Linear CLI - Select and interact with Linear issues
@@ -3025,6 +3055,7 @@ Options:
   -m, --me        Show only issues assigned to you
   -p, --projects  Select a project first, then show issues from that project
   -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
+  -a, --all       Show all issues, including closed ones
 `);
     return;
   }
@@ -3035,7 +3066,7 @@ Options:
       console.log("Fetching projects...");
       const [projects, issues2] = await Promise.all([
         getProjects(),
-        getIssues(false, void 0)
+        getIssues(false, void 0, args.all)
       ]);
       console.log("Fetching issues for project preview...");
       const projectSelection = await selectProject(projects, issues2);
@@ -3048,7 +3079,7 @@ Options:
     }
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId);
+      issues = await getIssues(args.me, projectId, args.all);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

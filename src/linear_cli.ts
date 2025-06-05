@@ -11,8 +11,9 @@ async function main() {
       m: "me",
       p: "projects",
       l: "loop",
+      a: "all",
     },
-    boolean: ["help", "me", "projects", "loop"],
+    boolean: ["help", "me", "projects", "loop", "all"],
   });
 
   if (args.help) {
@@ -25,6 +26,7 @@ Options:
   -m, --me        Show only issues assigned to you
   -p, --projects  Select a project first, then show issues from that project
   -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
+  -a, --all       Show all issues, including closed ones
 `);
     return;
   }
@@ -35,7 +37,7 @@ Options:
       console.log("Fetching projects...");
       const [projects, issues] = await Promise.all([
         getProjects(),
-        getIssues(false, undefined),
+        getIssues(false, undefined, args.all),
       ]);
       console.log("Fetching issues for project preview...");
       const projectSelection = await selectProject(projects, issues);
@@ -49,7 +51,7 @@ Options:
 
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId);
+      issues = await getIssues(args.me, projectId, args.all);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

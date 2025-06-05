@@ -46,7 +46,8 @@ export async function getIssue(issueId: string) {
 
 export async function getIssues(
   onlyMine: boolean = false,
-  projectId: string | undefined = undefined
+  projectId: string | undefined = undefined,
+  includeClosed: boolean = false
 ) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
@@ -62,10 +63,13 @@ export async function getIssues(
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
+  if (!includeClosed) {
+    filterParts.push(`state: { type: { nin: ["completed", "canceled"] } }`);
+  }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
   }
-
+  console.log(filterArgs);
   const query = `
     query Me { 
         issues(${filterArgs}) {

@@ -5,10 +5,34 @@ const linearTeamSchema = z.object({
   key: z.string(),
 });
 
-const linearStateSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-});
+const linearStateTypeSchema = z.enum([
+  "triage",
+  "backlog",
+  "unstarted",
+  "started",
+  "completed",
+  "canceled",
+]);
+
+const stateIconMap = {
+  unstarted: "⭕️" as const,
+  triage: "‼️" as const,
+  backlog: "⛔️" as const,
+  started: "🟡" as const,
+  completed: "🟢" as const,
+  canceled: "❌" as const,
+};
+const linearStateSchema = z
+  .object({
+    name: z.string(),
+    type: linearStateTypeSchema,
+  })
+  .transform((data) => ({
+    ...data,
+    get stateIcon() {
+      return stateIconMap[data.type] ?? "❓";
+    },
+  }));
 
 const linearCycleSchema = z.object({
   name: z.string().nullable(),

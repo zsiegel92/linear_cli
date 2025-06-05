@@ -34,7 +34,11 @@ export const previewIssue = (
       .filter(isNotNullOrUndefined)
       .map((item) => teamColor(item))
       .join(" - "),
-    [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null]
+    [
+      issue.state.stateIcon,
+      blue(bold(issue.title)),
+      issue.estimate ? `(${issue.estimate})` : null,
+    ]
       .filter(isNotNullOrUndefined)
       .join(" - "),
     issue.creator?.displayName
@@ -70,7 +74,7 @@ export const displayIssue = (
     .filter(isNotNullOrUndefined)
     .map((item) => teamColor(item))
     .join(" - ");
-  return `[${metadataPrefix}] ${
+  return `${issue.state.stateIcon}[${metadataPrefix}] ${
     issue.estimate ? `(${issue.estimate}) ` : ""
   }${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
