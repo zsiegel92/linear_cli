@@ -2775,7 +2775,6 @@ async function getIssues(onlyMine = false, projectId = void 0, includeClosed = f
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
   }
-  console.log(filterArgs);
   const query = `
     query Me { 
         issues(${filterArgs}) {

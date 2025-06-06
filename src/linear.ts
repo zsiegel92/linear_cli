@@ -69,7 +69,6 @@ export async function getIssues(
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
   }
-  console.log(filterArgs);
   const query = `
     query Me { 
         issues(${filterArgs}) {
