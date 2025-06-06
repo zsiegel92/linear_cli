@@ -2601,6 +2601,7 @@ function showNumberOfDaysAgo(dateString) {
     return null;
   }
 }
+var ZERO_WIDTH_SPACE = "\u200B";
 
 // src/oauth-linear.ts
 var import_qs = __toESM(require_lib());
@@ -2888,7 +2889,7 @@ var displayIssue = (issue, teamColors, teamProjectSlugs) => {
     issue.team.key,
     projectSlug
   ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ");
-  return `${issue.state.stateIcon}[${metadataPrefix}] ${issue.estimate ? `(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
+  return `${issue.state.stateIcon}[${metadataPrefix}] ${issue.estimate ? `${ZERO_WIDTH_SPACE}(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
 var getTeamColors = (issues) => {
   const teamColors = new Map(
@@ -2945,9 +2946,9 @@ async function selectProject(projects, issues) {
 
 No issues in this project`;
       }
-      return `${bold(item.fullItem.name)}
-
-${renderIssueList(projectIssues)}`;
+      return [bold(item.fullItem.name), renderIssueList(projectIssues)].join(
+        "\n\n"
+      );
     }
   });
   return selection;

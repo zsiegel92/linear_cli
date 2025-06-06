@@ -10,6 +10,7 @@ import {
   showNumberOfDaysAgo,
   copyToClipboard,
   openInBrowser,
+  ZERO_WIDTH_SPACE,
 } from "./utils";
 import { getUserSelection, defaultFzfArgs } from "fzf-ts";
 import { actions } from "./schema";
@@ -75,7 +76,7 @@ export const displayIssue = (
     .map((item) => teamColor(item))
     .join(" - ");
   return `${issue.state.stateIcon}[${metadataPrefix}] ${
-    issue.estimate ? `(${issue.estimate}) ` : ""
+    issue.estimate ? `${ZERO_WIDTH_SPACE}(${issue.estimate}) ` : ""
   }${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
 
@@ -105,7 +106,6 @@ export const getTeamProjectSlugs = (
 export const renderIssueList = (issues: LinearIssue[]): string => {
   const teamColors = getTeamColors(issues);
   const teamProjectSlugs = getTeamProjectSlugs(issues);
-
   return issues
     .map((issue) => displayIssue(issue, teamColors, teamProjectSlugs))
     .join("\n");
@@ -151,7 +151,9 @@ export async function selectProject(
       if (projectIssues.length === 0) {
         return `${bold(item.fullItem.name)}\n\nNo issues in this project`;
       }
-      return `${bold(item.fullItem.name)}\n\n${renderIssueList(projectIssues)}`;
+      return [bold(item.fullItem.name), renderIssueList(projectIssues)].join(
+        "\n\n"
+      );
     },
   });
 

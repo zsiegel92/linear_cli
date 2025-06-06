@@ -111,3 +111,5 @@ export function showNumberOfDaysAgo(dateString: string): string | null {
     return null;
   }
 }
+
+export const ZERO_WIDTH_SPACE = "\u200B"; // Useful if ansi escapes are next to brackets, which `bat` can render incorrectly.
