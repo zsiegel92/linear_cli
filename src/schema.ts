@@ -87,6 +87,7 @@ export const actions = [
   "copy-branch-name",
   "open-in-browser",
   "copy-issue-url",
+  "copy-issue-description-markdown",
 ] as const;
 export type Action = (typeof actions)[number];
 

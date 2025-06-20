@@ -2514,7 +2514,8 @@ var linearIssueResponseSchema = import_zod.z.object({
 var actions = [
   "copy-branch-name",
   "open-in-browser",
-  "copy-issue-url"
+  "copy-issue-url",
+  "copy-issue-description-markdown"
 ];
 var linearAuthResponseSchema = import_zod.z.object({
   access_token: import_zod.z.string(),
@@ -2541,7 +2542,7 @@ var import_express = __toESM(require("express"));
 // src/utils.ts
 var import_child_process = require("child_process");
 function copyToClipboard(text) {
-  return (0, import_child_process.exec)(`echo ${text} | pbcopy`);
+  return (0, import_child_process.exec)(`echo "${text}" | pbcopy`);
 }
 function openInBrowser(url) {
   return (0, import_child_process.exec)(`open "${url}"`);
@@ -2989,6 +2990,11 @@ async function selectAction(selection, alreadyDoneActions) {
             id: action2,
             display: `${alreadyDoneBadge}Copy issue URL (${selection.url})`
           };
+        case "copy-issue-description-markdown":
+          return {
+            id: action2,
+            display: `${alreadyDoneBadge}Copy issue description as markdown`
+          };
       }
     }),
     getPreview: void 0,
@@ -3016,6 +3022,18 @@ async function selectAndTakeAction(selectedIssue, alreadyDoneActions) {
     case "copy-issue-url":
       copyToClipboard(selectedIssue.url);
       console.log(`Copied issue URL to clipboard (${selectedIssue.url})`);
+      break;
+    case "copy-issue-description-markdown":
+      const teamProjectSlugs = /* @__PURE__ */ new Map([
+        [selectedIssue.project?.id, getSlug(selectedIssue.project?.name)]
+      ]);
+      if (!selectedIssue.description) {
+        console.log("No description found for issue");
+        return null;
+      }
+      copyToClipboard(selectedIssue.description);
+      console.log("Copied issue description as markdown to clipboard");
+      console.log(`${selectedIssue.description.slice(0, 100)}...`);
       break;
   }
   return action;

@@ -200,6 +200,11 @@ export async function selectAction(
             id: action,
             display: `${alreadyDoneBadge}Copy issue URL (${selection.url})`,
           };
+        case "copy-issue-description-markdown":
+          return {
+            id: action,
+            display: `${alreadyDoneBadge}Copy issue description as markdown`,
+          };
       }
     }),
     getPreview: undefined,
@@ -231,6 +236,18 @@ export async function selectAndTakeAction(
     case "copy-issue-url":
       copyToClipboard(selectedIssue.url);
       console.log(`Copied issue URL to clipboard (${selectedIssue.url})`);
+      break;
+    case "copy-issue-description-markdown":
+      const teamProjectSlugs = new Map([
+        [selectedIssue.project?.id, getSlug(selectedIssue.project?.name)],
+      ]);
+      if (!selectedIssue.description) {
+        console.log("No description found for issue");
+        return null;
+      }
+      copyToClipboard(selectedIssue.description);
+      console.log("Copied issue description as markdown to clipboard");
+      console.log(`${selectedIssue.description.slice(0, 100)}...`);
       break;
   }
   return action;

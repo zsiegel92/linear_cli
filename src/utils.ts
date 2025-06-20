@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 
 export function copyToClipboard(text: string) {
-  return exec(`echo ${text} | pbcopy`);
+  return exec(`echo "${text}" | pbcopy`);
 }
 
 export function openInBrowser(url: string) {
