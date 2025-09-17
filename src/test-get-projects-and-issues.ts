@@ -13,5 +13,5 @@ async function main() {
   });
 }
 
-// npx tsx src/test-get-projects.ts
+// npx tsx src/test-get-projects-and-issues.ts
 main();
