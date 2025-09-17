@@ -4,11 +4,12 @@ import qs from "qs";
 import { createHash, randomBytes } from "crypto";
 import { linearAuthResponseSchema, type LinearAuthResponse } from "./schema";
 
-const CLIENT_ID = "5550832bef77c4187b8e4c71734348e3" // not secret, can be published
+const CLIENT_ID = "5550832bef77c4187b8e4c71734348e3"; // not secret, can be published
 const REDIRECT_URI = "http://localhost:3002/token";
 const PORT = 3002;
 const CALLBACK_ROUTE = "/token";
-const SUCCESS_MESSAGE = "Login successful. You can close this window. Your OAuth token is stored at `~/.config/linear-select-issue-cli/oauth-token.json`"
+const SUCCESS_MESSAGE =
+  "Login successful. You can close this window. Your OAuth token is stored at `~/.config/linear-select-issue-cli/oauth-token.json`";
 
 export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse> {
   const CLIENT_SECRET = process.env.LINEAR_CLIENT_SECRET;
@@ -20,11 +21,11 @@ export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse
       const state = req.query.state as string;
       if (state !== randomState) {
         res.status(400).send("Invalid state");
-        return reject("Invalid state");
+        return reject(Error("Invalid state"));
       }
       if (!code) {
         res.status(400).send("Missing code");
-        return reject("No code in callback");
+        return reject(Error("No code in callback"));
       }
       try {
         const tokenRes = await fetch("https://api.linear.app/oauth/token", {
@@ -51,7 +52,7 @@ export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse
         resolve(parsedData);
       } catch (err: any) {
         res.status(500).send("Token exchange failed.");
-        reject(err.response?.data || err.message);
+        reject(Error(err.response?.data || err.message));
       }
     });
     const server = app.listen(PORT, () => {
@@ -81,11 +82,11 @@ export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse
       const receivedState = req.query.state as string;
       if (receivedState !== state) {
         res.status(400).send("Invalid state");
-        return reject("Invalid state");
+        return reject(Error("Invalid state"));
       }
       if (!code) {
         res.status(400).send("Missing code");
-        return reject("No code in callback");
+        return reject(Error("No code in callback"));
       }
       try {
         const tokenRes = await fetch("https://api.linear.app/oauth/token", {
@@ -115,7 +116,7 @@ export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse
         resolve(parsedData);
       } catch (err: any) {
         res.status(500).send("Token exchange failed.");
-        reject(err.response?.data || err.message);
+        reject(Error(err.response?.data || err.message));
       }
     });
 
