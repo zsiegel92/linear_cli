@@ -2449,13 +2449,15 @@ var linearStateTypeSchema = import_zod.z.enum([
   "unstarted",
   "started",
   "completed",
-  "canceled"
+  "canceled",
+  "review"
 ]);
 var stateIconMap = {
   unstarted: "\u2B55\uFE0F",
   triage: "\u203C\uFE0F",
   backlog: "\u26D4\uFE0F",
   started: "\u{1F7E1}",
+  review: "\u{1F7E3}",
   completed: "\u{1F7E2}",
   canceled: "\u274C"
 };
@@ -2468,6 +2470,7 @@ var linearStateSchema = import_zod.z.object({
     return stateIconMap[data.type] ?? "\u2753";
   }
 }));
+var stateMap = import_zod.z.record(import_zod.z.string(), linearStateSchema);
 var linearCycleSchema = import_zod.z.object({
   name: import_zod.z.string().nullable()
 });
@@ -2497,7 +2500,7 @@ var linearIssueSchema = import_zod.z.object({
   priority: import_zod.z.number().nullable(),
   priorityLabel: import_zod.z.string().nullable(),
   startedAt: import_zod.z.string().nullable(),
-  creator: linearUserSchema,
+  creator: linearUserSchema.nullable(),
   dueDate: import_zod.z.string().nullable(),
   url: import_zod.z.string(),
   project: linearProjectSchema.nullable()
@@ -2623,11 +2626,11 @@ async function getAuthTokenWithClientIdOnly() {
       const receivedState = req.query.state;
       if (receivedState !== state) {
         res.status(400).send("Invalid state");
-        return reject("Invalid state");
+        return reject(Error("Invalid state"));
       }
       if (!code) {
         res.status(400).send("Missing code");
-        return reject("No code in callback");
+        return reject(Error("No code in callback"));
       }
       try {
         const tokenRes = await fetch("https://api.linear.app/oauth/token", {
@@ -2656,7 +2659,7 @@ async function getAuthTokenWithClientIdOnly() {
         resolve(parsedData);
       } catch (err) {
         res.status(500).send("Token exchange failed.");
-        reject(err.response?.data || err.message);
+        reject(Error(err.response?.data || err.message));
       }
     });
     const server = app.listen(PORT, () => {
