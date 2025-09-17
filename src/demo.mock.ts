@@ -1,75 +1,74 @@
-import { LinearIssue } from "./schema";
-
-type Team = LinearIssue["team"]
-type User = LinearIssue["assignee"]
-type Project = LinearIssue["project"]
-type State = LinearIssue["state"]
-type Cycle = LinearIssue["cycle"]
+import { LinearIssue, stateMap, StateMap } from "./schema";
+type Team = LinearIssue["team"];
+type User = LinearIssue["assignee"];
+type Project = LinearIssue["project"];
+type State = LinearIssue["state"];
+type Cycle = LinearIssue["cycle"];
 
 // Define reusable objects
 const users: Record<string, NonNullable<User>> = {
   alice: {
     name: "Alice Smith",
     email: "alice@company.com",
-    displayName: "Alice"
+    displayName: "Alice",
   },
   bob: {
     name: "Bob Johnson",
     email: "bob@company.com",
-    displayName: "Bob"
+    displayName: "Bob",
   },
   charlie: {
     name: "Charlie Williams",
     email: "charlie@company.com",
-    displayName: "Charlie"
-  }
+    displayName: "Charlie",
+  },
 };
 
 const teams: Record<string, Team> = {
   frontend: {
     name: "Frontend",
-    key: "FE"
+    key: "FE",
   },
   backend: {
     name: "Backend",
-    key: "BE"
+    key: "BE",
   },
   design: {
     name: "Design",
-    key: "DS"
-  }
+    key: "DS",
+  },
 };
 
-const states: Record<string, State> = {
+const states: Record<string, State> = stateMap.parse({
   backlog: {
     name: "Backlog",
-    type: "backlog"
+    type: "backlog",
   },
   toDo: {
     name: "To Do",
-    type: "unstarted"
+    type: "unstarted",
   },
   inProgress: {
     name: "In Progress",
-    type: "started"
+    type: "started",
   },
   inReview: {
     name: "In Review",
-    type: "review"
+    type: "review",
   },
   done: {
     name: "Done",
-    type: "completed"
-  }
-};
+    type: "completed",
+  },
+} satisfies StateMap);
 
 const cycles: Record<string, NonNullable<Cycle>> = {
   current: {
-    name: "Sprint 24"
+    name: "Sprint 24",
   },
   next: {
-    name: "Sprint 25"
-  }
+    name: "Sprint 25",
+  },
 };
 
 const projects: Record<string, NonNullable<Project>> = {
@@ -77,20 +76,20 @@ const projects: Record<string, NonNullable<Project>> = {
     name: "Dashboard Redesign",
     color: "#0000FF",
     slugId: "dashboard-redesign",
-    id: "proj_123"
+    id: "proj_123",
   },
   auth: {
     name: "Auth System",
     color: "#FF0000",
     slugId: "auth-system",
-    id: "proj_456"
+    id: "proj_456",
   },
   analytics: {
     name: "Analytics Platform",
     color: "#00FF00",
     slugId: "analytics-platform",
-    id: "proj_789"
-  }
+    id: "proj_789",
+  },
 };
 
 // Export mock issues
@@ -103,7 +102,8 @@ export const issues: LinearIssue[] = [
     team: teams.frontend,
     state: states.inProgress,
     cycle: cycles.current,
-    description: "Create a new login form with improved validation and error handling.",
+    description:
+      "Create a new login form with improved validation and error handling.",
     branchName: "feature/login-form",
     createdAt: "2023-05-10T09:00:00Z",
     estimate: 3,
@@ -113,7 +113,7 @@ export const issues: LinearIssue[] = [
     creator: users.bob,
     dueDate: "2023-05-25T23:59:59Z",
     url: "https://linear.app/company/issue/LIN-101",
-    project: projects.auth
+    project: projects.auth,
   },
   {
     id: "LIN-102",
@@ -123,7 +123,8 @@ export const issues: LinearIssue[] = [
     team: teams.backend,
     state: states.inReview,
     cycle: cycles.current,
-    description: "Resolve issues with API rate limiting that causes errors during high traffic.",
+    description:
+      "Resolve issues with API rate limiting that causes errors during high traffic.",
     branchName: "fix/api-rate-limiting",
     createdAt: "2023-05-09T13:20:00Z",
     estimate: 5,
@@ -133,7 +134,7 @@ export const issues: LinearIssue[] = [
     creator: users.charlie,
     dueDate: "2023-05-18T23:59:59Z",
     url: "https://linear.app/company/issue/LIN-102",
-    project: projects.auth
+    project: projects.auth,
   },
   {
     id: "LIN-103",
@@ -153,7 +154,7 @@ export const issues: LinearIssue[] = [
     creator: users.alice,
     dueDate: "2023-05-12T23:59:59Z",
     url: "https://linear.app/company/issue/LIN-103",
-    project: projects.dashboard
+    project: projects.dashboard,
   },
   {
     id: "LIN-104",
@@ -173,7 +174,7 @@ export const issues: LinearIssue[] = [
     creator: users.bob,
     dueDate: "2023-06-01T23:59:59Z",
     url: "https://linear.app/company/issue/LIN-104",
-    project: projects.analytics
+    project: projects.analytics,
   },
   {
     id: "LIN-105",
@@ -193,6 +194,6 @@ export const issues: LinearIssue[] = [
     creator: users.bob,
     dueDate: null,
     url: "https://linear.app/company/issue/LIN-105",
-    project: null
-  }
+    project: null,
+  },
 ];

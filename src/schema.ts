@@ -12,6 +12,7 @@ const linearStateTypeSchema = z.enum([
   "started",
   "completed",
   "canceled",
+  "review",
 ]);
 
 const stateIconMap = {
@@ -19,6 +20,7 @@ const stateIconMap = {
   triage: "‼️" as const,
   backlog: "⛔️" as const,
   started: "🟡" as const,
+  review: "🟣" as const,
   completed: "🟢" as const,
   canceled: "❌" as const,
 };
@@ -33,6 +35,9 @@ const linearStateSchema = z
       return stateIconMap[data.type] ?? "❓";
     },
   }));
+
+export const stateMap = z.record(z.string(), linearStateSchema);
+export type StateMap = z.input<typeof stateMap>;
 
 const linearCycleSchema = z.object({
   name: z.string().nullable(),
@@ -66,7 +71,7 @@ const linearIssueSchema = z.object({
   priority: z.number().nullable(),
   priorityLabel: z.string().nullable(),
   startedAt: z.string().nullable(),
-  creator: linearUserSchema,
+  creator: linearUserSchema.nullable(),
   dueDate: z.string().nullable(),
   url: z.string(),
   project: linearProjectSchema.nullable(),
