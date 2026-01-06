@@ -208,7 +208,7 @@ export async function selectAction(
       }
     }),
     getPreview: undefined,
-    fzfArgs: [...defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"],
+    fzfArgs: [...defaultFzfArgs, "--header=Select an action (esc to go back, ctrl-c to exit)"],
   });
   return action?.id ?? null;
 }

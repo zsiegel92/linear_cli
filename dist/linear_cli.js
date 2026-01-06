@@ -3015,7 +3015,7 @@ async function selectAction(selection, alreadyDoneActions) {
       }
     }),
     getPreview: void 0,
-    fzfArgs: [...import_fzf_ts.defaultFzfArgs, "--header=Select an action (ctrl-c to exit)"]
+    fzfArgs: [...import_fzf_ts.defaultFzfArgs, "--header=Select an action (esc to go back, ctrl-c to exit)"]
   });
   return action?.id ?? null;
 }
@@ -3122,16 +3122,20 @@ Options:
       return;
     }
     console.log(`Found ${issues.length} issues`);
-    const selection = await selectIssue(issues);
-    if (!selection) {
-      console.log("No issue selected");
-      return;
+    while (true) {
+      const selection = await selectIssue(issues);
+      if (!selection) {
+        console.log("Exiting");
+        return;
+      }
+      const doneActions = await selectAndTakeActionLoop(
+        selection.fullItem,
+        args.loop
+      );
+      if (doneActions.length > 0) {
+        console.log(`Done actions: ${doneActions.join(", ")}`);
+      }
     }
-    const doneActions = await selectAndTakeActionLoop(
-      selection.fullItem,
-      args.loop
-    );
-    console.log(`Done actions: ${doneActions.join(", ")}`);
   } catch (err) {
     if (!process.env.LINEAR_API_KEY) {
       throw new Error(

@@ -59,16 +59,24 @@ Options:
       return;
     }
     console.log(`Found ${issues.length} issues`);
-    const selection = await selectIssue(issues);
-    if (!selection) {
-      console.log("No issue selected");
-      return;
+
+    // Main loop: select issue -> select actions -> back to issues
+    while (true) {
+      const selection = await selectIssue(issues);
+      if (!selection) {
+        console.log("Exiting");
+        return;
+      }
+
+      const doneActions = await selectAndTakeActionLoop(
+        selection.fullItem,
+        args.loop
+      );
+      if (doneActions.length > 0) {
+        console.log(`Done actions: ${doneActions.join(", ")}`);
+      }
+      // Loop back to issue selection
     }
-    const doneActions = await selectAndTakeActionLoop(
-      selection.fullItem,
-      args.loop
-    );
-    console.log(`Done actions: ${doneActions.join(", ")}`);
   } catch (err) {
     if (!process.env.LINEAR_API_KEY) {
       throw new Error(
