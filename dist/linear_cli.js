@@ -2762,7 +2762,15 @@ async function getAuthenticatedClient() {
   _clientSingleton = linearClient;
   return linearClient;
 }
-async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false) {
+var STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED = [
+  "In Product Acceptance",
+  "In Code Review",
+  "In Progress",
+  "Done",
+  "Canceled",
+  "Duplicate"
+];
+async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false, onlyUnassigned = false) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
   let filterArgs = "orderBy: updatedAt, first: 80";
@@ -2771,10 +2779,16 @@ async function getIssues(onlyMine = false, projectId = void 0, includeClosed = f
     const me = await linearClient.viewer;
     filterParts.push(`assignee: { id: { eq: "${me.id}" } }`);
   }
+  if (onlyUnassigned) {
+    filterParts.push(`assignee: { null: true }`);
+    filterParts.push(
+      `state: { name: { nin: ${JSON.stringify(STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED)} } }`
+    );
+  }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
-  if (!includeClosed) {
+  if (!includeClosed && !onlyUnassigned) {
     filterParts.push(`state: { type: { nin: ["completed", "canceled"] } }`);
   }
   if (filterParts.length > 0) {
@@ -3062,9 +3076,10 @@ async function main() {
       m: "me",
       p: "projects",
       l: "loop",
-      a: "all"
+      a: "all",
+      u: "unassigned"
     },
-    boolean: ["help", "me", "projects", "loop", "all"]
+    boolean: ["help", "me", "projects", "loop", "all", "unassigned"]
   });
   if (args.help) {
     console.log(`Linear CLI - Select and interact with Linear issues
@@ -3072,11 +3087,12 @@ async function main() {
 Usage: linear-cli [options]
 
 Options:
-  -h, --help      Show this help message
-  -m, --me        Show only issues assigned to you
-  -p, --projects  Select a project first, then show issues from that project
-  -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
-  -a, --all       Show all issues, including closed ones
+  -h, --help        Show this help message
+  -m, --me          Show only issues assigned to you
+  -p, --projects    Select a project first, then show issues from that project
+  -l, --loop        Loop action selector (to copy branch name and open in browser, etc.)
+  -a, --all         Show all issues, including closed ones
+  -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
 `);
     return;
   }
@@ -3100,7 +3116,7 @@ Options:
     }
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId, args.all);
+      issues = await getIssues(args.me, projectId, args.all, args.unassigned);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

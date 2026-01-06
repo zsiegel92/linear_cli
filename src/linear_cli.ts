@@ -12,8 +12,9 @@ async function main() {
       p: "projects",
       l: "loop",
       a: "all",
+      u: "unassigned",
     },
-    boolean: ["help", "me", "projects", "loop", "all"],
+    boolean: ["help", "me", "projects", "loop", "all", "unassigned"],
   });
 
   if (args.help) {
@@ -22,11 +23,12 @@ async function main() {
 Usage: linear-cli [options]
 
 Options:
-  -h, --help      Show this help message
-  -m, --me        Show only issues assigned to you
-  -p, --projects  Select a project first, then show issues from that project
-  -l, --loop      Loop action selector (to copy branch name and open in browser, etc.)
-  -a, --all       Show all issues, including closed ones
+  -h, --help        Show this help message
+  -m, --me          Show only issues assigned to you
+  -p, --projects    Select a project first, then show issues from that project
+  -l, --loop        Loop action selector (to copy branch name and open in browser, etc.)
+  -a, --all         Show all issues, including closed ones
+  -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
 `);
     return;
   }
@@ -51,7 +53,7 @@ Options:
 
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId, args.all);
+      issues = await getIssues(args.me, projectId, args.all, args.unassigned);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

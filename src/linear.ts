@@ -44,10 +44,20 @@ export async function getIssue(issueId: string) {
   return issue;
 }
 
+const STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED = [
+  "In Product Acceptance",
+  "In Code Review",
+  "In Progress",
+  "Done",
+  "Canceled",
+  "Duplicate",
+];
+
 export async function getIssues(
   onlyMine: boolean = false,
   projectId: string | undefined = undefined,
-  includeClosed: boolean = false
+  includeClosed: boolean = false,
+  onlyUnassigned: boolean = false
 ) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
@@ -60,10 +70,16 @@ export async function getIssues(
     const me = await linearClient.viewer;
     filterParts.push(`assignee: { id: { eq: "${me.id}" } }`);
   }
+  if (onlyUnassigned) {
+    filterParts.push(`assignee: { null: true }`);
+    filterParts.push(
+      `state: { name: { nin: ${JSON.stringify(STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED)} } }`
+    );
+  }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
-  if (!includeClosed) {
+  if (!includeClosed && !onlyUnassigned) {
     filterParts.push(`state: { type: { nin: ["completed", "canceled"] } }`);
   }
   if (filterParts.length > 0) {
