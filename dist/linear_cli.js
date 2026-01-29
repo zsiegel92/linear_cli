@@ -2443,7 +2443,7 @@ var linearTeamSchema = import_zod.z.object({
   name: import_zod.z.string(),
   key: import_zod.z.string()
 });
-var linearStateTypeSchema = import_zod.z.enum([
+var statusTypes = [
   "triage",
   "backlog",
   "unstarted",
@@ -2451,15 +2451,32 @@ var linearStateTypeSchema = import_zod.z.enum([
   "completed",
   "canceled",
   "review"
-]);
+];
+var linearStateTypeSchema = import_zod.z.enum(statusTypes);
 var stateIconMap = {
   unstarted: "\u2B55\uFE0F",
-  triage: "\u203C\uFE0F",
+  // Todo, Backlog
+  triage: "\u{1F536}",
+  // Triage
   backlog: "\u26D4\uFE0F",
+  // Icebox, Sentry, Untriaged
   started: "\u{1F7E1}",
+  // In Progress, DS/AQ/SS feedback needed, In Code Review, In Product Acceptance, In Review
   review: "\u{1F7E3}",
+  // (unused - review states come through as "started")
   completed: "\u{1F7E2}",
+  // Done
   canceled: "\u274C"
+  // Canceled, Duplicate
+};
+var stateColorMap = {
+  backlog: "#bec2c8",
+  unstarted: "#e2e2e2",
+  triage: "#FC7840",
+  started: "#f2c94c",
+  completed: "#5e6ad2",
+  canceled: "#95a2b3",
+  review: "#0f783c"
 };
 var linearStateSchema = import_zod.z.object({
   name: import_zod.z.string(),
@@ -2468,6 +2485,9 @@ var linearStateSchema = import_zod.z.object({
   ...data,
   get stateIcon() {
     return stateIconMap[data.type] ?? "\u2753";
+  },
+  get stateColor() {
+    return stateColorMap[data.type] ?? "#888888";
   }
 }));
 var stateMap = import_zod.z.record(import_zod.z.string(), linearStateSchema);
@@ -2570,6 +2590,12 @@ function magenta(text) {
 }
 function noColor(text) {
   return text;
+}
+function hexColor(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (text) => `\x1B[38;2;${r};${g};${b}m${text}\x1B[0m`;
 }
 var secondaryColors = [yellow, cyan, magenta];
 var PRESERVED = ":()[]{}-&";
@@ -2876,18 +2902,16 @@ var import_fzf_ts = require("fzf-ts");
 var previewIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
+  const stateColor = hexColor(issue.state.stateColor);
   return [
+    stateColor(`${issue.state.stateIcon} ${issue.state.name}`),
     [
       underline(
         bold(issue.project?.name ?? "<No Project Specified For Issue>")
       ),
       projectSlug ? `(${projectSlug})` : null
     ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
-    [
-      issue.state.stateIcon,
-      blue(bold(issue.title)),
-      issue.estimate ? `(${issue.estimate})` : null
-    ].filter(isNotNullOrUndefined).join(" - "),
+    [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
     issue.creator?.displayName ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
       issue.createdAt
     ).toLocaleString()}` : null,
@@ -3015,7 +3039,10 @@ async function selectAction(selection, alreadyDoneActions) {
       }
     }),
     getPreview: void 0,
-    fzfArgs: [...import_fzf_ts.defaultFzfArgs, "--header=Select an action (esc to go back, ctrl-c to exit)"]
+    fzfArgs: [
+      ...import_fzf_ts.defaultFzfArgs,
+      "--header=Select an action (esc to go back, ctrl-c to exit)"
+    ]
   });
   return action?.id ?? null;
 }

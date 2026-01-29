@@ -47,6 +47,13 @@ export function noColor(text: string) {
   return text;
 }
 
+export function hexColor(hex: string) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (text: string) => `\x1b[38;2;${r};${g};${b}m${text}\x1b[0m`;
+}
+
 export const colors = [red, green, blue, yellow, cyan, magenta];
 export const primaryColors = [red, green, blue];
 export const secondaryColors = [yellow, cyan, magenta];
@@ -82,7 +89,7 @@ export function getSlug(text?: string): string {
 }
 
 export function isNotNullOrUndefined<T>(
-  value: T | null | undefined
+  value: T | null | undefined,
 ): value is NonNullable<T> {
   return value !== null && value !== undefined;
 }
@@ -104,7 +111,7 @@ export function showNumberOfDaysAgo(dateString: string): string | null {
   try {
     const date = new Date(dateString);
     const daysAgo = Math.floor(
-      (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
     return `${daysAgo} day${daysAgo === 1 ? "" : "s"} ago`;
   } catch (e) {

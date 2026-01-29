@@ -11,6 +11,7 @@ import {
   copyToClipboard,
   openInBrowser,
   ZERO_WIDTH_SPACE,
+  hexColor,
 } from "./utils";
 import { getUserSelection, defaultFzfArgs } from "fzf-ts";
 import { actions } from "./schema";
@@ -21,30 +22,28 @@ export type LinearProject = z.infer<typeof linearProjectSchema>;
 export const previewIssue = (
   issue: LinearIssue,
   teamColors: Map<string, (text: string) => string>,
-  teamProjectSlugs: Map<string | undefined, string>
+  teamProjectSlugs: Map<string | undefined, string>,
 ) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
+  const stateColor = hexColor(issue.state.stateColor);
   return [
+    stateColor(`${issue.state.stateIcon} ${issue.state.name}`),
     [
       underline(
-        bold(issue.project?.name ?? "<No Project Specified For Issue>")
+        bold(issue.project?.name ?? "<No Project Specified For Issue>"),
       ),
       projectSlug ? `(${projectSlug})` : null,
     ]
       .filter(isNotNullOrUndefined)
       .map((item) => teamColor(item))
       .join(" - "),
-    [
-      issue.state.stateIcon,
-      blue(bold(issue.title)),
-      issue.estimate ? `(${issue.estimate})` : null,
-    ]
+    [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null]
       .filter(isNotNullOrUndefined)
       .join(" - "),
     issue.creator?.displayName
       ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
-          issue.createdAt
+          issue.createdAt,
         ).toLocaleString()}`
       : null,
     issue.updatedAt ? `Updated ${showNumberOfDaysAgo(issue.updatedAt)}` : null,
@@ -60,7 +59,7 @@ export const previewIssue = (
 export const displayIssue = (
   issue: LinearIssue,
   teamColors: Map<string, (text: string) => string>,
-  teamProjectSlugs: Map<string | undefined, string>
+  teamProjectSlugs: Map<string | undefined, string>,
 ) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
@@ -81,24 +80,24 @@ export const displayIssue = (
 };
 
 export const getTeamColors = (
-  issues: LinearIssue[]
+  issues: LinearIssue[],
 ): Map<string, (text: string) => string> => {
   const teamColors = new Map(
     [...new Set(issues.map((issue) => issue.team.key))].map(
       (teamKey, index) => [
         teamKey,
         secondaryColors[index % secondaryColors.length],
-      ]
-    )
+      ],
+    ),
   );
   return teamColors;
 };
 
 export const getTeamProjectSlugs = (
-  issues: LinearIssue[]
+  issues: LinearIssue[],
 ): Map<string | undefined, string> => {
   const teamProjectSlugs = new Map(
-    issues.map((issue) => [issue.project?.id, getSlug(issue.project?.name)])
+    issues.map((issue) => [issue.project?.id, getSlug(issue.project?.name)]),
   );
   return teamProjectSlugs;
 };
@@ -113,7 +112,7 @@ export const renderIssueList = (issues: LinearIssue[]): string => {
 
 export async function selectProject(
   projects: LinearProject[],
-  issues: LinearIssue[]
+  issues: LinearIssue[],
 ) {
   const projectIssuesMap = new Map<string, LinearIssue[]>();
 
@@ -152,7 +151,7 @@ export async function selectProject(
         return `${bold(item.fullItem.name)}\n\nNo issues in this project`;
       }
       return [bold(item.fullItem.name), renderIssueList(projectIssues)].join(
-        "\n\n"
+        "\n\n",
       );
     },
   });
@@ -179,7 +178,7 @@ export async function selectIssue(issues: LinearIssue[]) {
 
 export async function selectAction(
   selection: LinearIssue,
-  alreadyDoneActions: Set<Action>
+  alreadyDoneActions: Set<Action>,
 ) {
   const action = await getUserSelection({
     items: actions.map((action) => {
@@ -208,14 +207,17 @@ export async function selectAction(
       }
     }),
     getPreview: undefined,
-    fzfArgs: [...defaultFzfArgs, "--header=Select an action (esc to go back, ctrl-c to exit)"],
+    fzfArgs: [
+      ...defaultFzfArgs,
+      "--header=Select an action (esc to go back, ctrl-c to exit)",
+    ],
   });
   return action?.id ?? null;
 }
 
 export async function selectAndTakeAction(
   selectedIssue: LinearIssue,
-  alreadyDoneActions: Set<Action>
+  alreadyDoneActions: Set<Action>,
 ): Promise<Action | null> {
   const action = await selectAction(selectedIssue, alreadyDoneActions);
   if (!action) {
@@ -226,7 +228,7 @@ export async function selectAndTakeAction(
     case "copy-branch-name":
       copyToClipboard(selectedIssue.branchName);
       console.log(
-        `Copied branch name to clipboard (${selectedIssue.branchName})`
+        `Copied branch name to clipboard (${selectedIssue.branchName})`,
       );
       break;
     case "open-in-browser":
@@ -255,7 +257,7 @@ export async function selectAndTakeAction(
 
 export async function selectAndTakeActionLoop(
   selectedIssue: LinearIssue,
-  looping: boolean
+  looping: boolean,
 ) {
   const doneActions = new Set<Action>();
   while (true) {
