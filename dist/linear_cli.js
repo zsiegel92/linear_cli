@@ -2899,12 +2899,31 @@ async function getProjects() {
 
 // src/ui.ts
 var import_fzf_ts = require("fzf-ts");
+var getPriorityIcon = (priority) => {
+  switch (priority) {
+    case 1:
+      return "\u203C";
+    // Urgent
+    case 2:
+      return "\u2582\u2583\u2585";
+    // High
+    case 3:
+      return "\u2582\u2583";
+    // Medium
+    case 4:
+      return "\u2582";
+    // Low
+    default:
+      return "\u25CB";
+  }
+};
 var previewIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   const stateColor = hexColor(issue.state.stateColor);
+  const priorityIcon = getPriorityIcon(issue.priority);
   return [
-    stateColor(`${issue.state.stateIcon} ${issue.state.name}`),
+    `${priorityIcon} ${stateColor(`${issue.state.stateIcon} ${issue.state.name}`)}`,
     [
       underline(
         bold(issue.project?.name ?? "<No Project Specified For Issue>")
@@ -2931,7 +2950,8 @@ var displayIssue = (issue, teamColors, teamProjectSlugs) => {
     issue.team.key,
     projectSlug
   ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - ");
-  return `${issue.state.stateIcon}[${metadataPrefix}] ${issue.estimate ? `${ZERO_WIDTH_SPACE}(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
+  const priorityIcon = getPriorityIcon(issue.priority);
+  return `${issue.state.stateIcon}[${metadataPrefix}] ${priorityIcon} ${issue.estimate ? `${ZERO_WIDTH_SPACE}(${issue.estimate}) ` : ""}${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
 var getTeamColors = (issues) => {
   const teamColors = new Map(

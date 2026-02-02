@@ -19,6 +19,21 @@ import { z } from "zod";
 
 export type LinearProject = z.infer<typeof linearProjectSchema>;
 
+const getPriorityIcon = (priority: number | null): string => {
+  switch (priority) {
+    case 1:
+      return "‼"; // Urgent
+    case 2:
+      return "▂▃▅"; // High
+    case 3:
+      return "▂▃"; // Medium
+    case 4:
+      return "▂"; // Low
+    default:
+      return "○"; // No priority (0 or null)
+  }
+};
+
 export const previewIssue = (
   issue: LinearIssue,
   teamColors: Map<string, (text: string) => string>,
@@ -27,8 +42,9 @@ export const previewIssue = (
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   const stateColor = hexColor(issue.state.stateColor);
+  const priorityIcon = getPriorityIcon(issue.priority);
   return [
-    stateColor(`${issue.state.stateIcon} ${issue.state.name}`),
+    `${priorityIcon} ${stateColor(`${issue.state.stateIcon} ${issue.state.name}`)}`,
     [
       underline(
         bold(issue.project?.name ?? "<No Project Specified For Issue>"),
@@ -74,7 +90,8 @@ export const displayIssue = (
     .filter(isNotNullOrUndefined)
     .map((item) => teamColor(item))
     .join(" - ");
-  return `${issue.state.stateIcon}[${metadataPrefix}] ${
+  const priorityIcon = getPriorityIcon(issue.priority);
+  return `${issue.state.stateIcon}[${metadataPrefix}] ${priorityIcon} ${
     issue.estimate ? `${ZERO_WIDTH_SPACE}(${issue.estimate}) ` : ""
   }${blue(issue.title)}${numberDaysAgoUpdatedMessage}`;
 };
