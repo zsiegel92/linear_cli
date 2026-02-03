@@ -20,14 +20,31 @@ type StatusType = (typeof statusTypes)[number];
 const linearStateTypeSchema = z.enum(statusTypes);
 
 const stateIconMap = {
-  unstarted: "⭕️" as const, // Todo, Backlog
-  triage: "🔶" as const, // Triage
-  backlog: "⛔️" as const, // Icebox, Sentry, Untriaged
-  started: "🟡" as const, // In Progress, DS/AQ/SS feedback needed, In Code Review, In Product Acceptance, In Review
-  review: "🟣" as const, // (unused - review states come through as "started")
-  completed: "🟢" as const, // Done
-  canceled: "❌" as const, // Canceled, Duplicate
+  unstarted: "⭕️" as const,
+  triage: "🔶" as const,
+  backlog: "⛔️" as const,
+  started: "🟡" as const,
+  review: "🟣" as const,
+  completed: "🟢" as const,
+  canceled: "❌" as const,
 } as const satisfies Record<StatusType, string>;
+
+const stateNameIconMap: Record<string, string> = {
+  "In Progress": "🟡",
+  "In Code Review": "🟣",
+  "In Review": "🟣",
+  "In Product Acceptance": "🟢",
+  "DS/AQ/SS feedback needed": "🔵",
+  Triage: "🔶",
+  Sentry: "⛔️",
+  Untriaged: "⛔️",
+  Icebox: "⛔️",
+  Todo: "⭕️",
+  Backlog: "⭕️",
+  Done: "✅",
+  Canceled: "❌",
+  Duplicate: "❌",
+};
 
 const stateColorMap = {
   backlog: "#bec2c8" as const,
@@ -47,7 +64,7 @@ const linearStateSchema = z
   .transform((data) => ({
     ...data,
     get stateIcon() {
-      return stateIconMap[data.type] ?? "❓";
+      return stateNameIconMap[data.name] ?? stateIconMap[data.type] ?? "❓";
     },
     get stateColor() {
       return stateColorMap[data.type] ?? "#888888";

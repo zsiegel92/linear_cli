@@ -2455,19 +2455,28 @@ var statusTypes = [
 var linearStateTypeSchema = import_zod.z.enum(statusTypes);
 var stateIconMap = {
   unstarted: "\u2B55\uFE0F",
-  // Todo, Backlog
   triage: "\u{1F536}",
-  // Triage
   backlog: "\u26D4\uFE0F",
-  // Icebox, Sentry, Untriaged
   started: "\u{1F7E1}",
-  // In Progress, DS/AQ/SS feedback needed, In Code Review, In Product Acceptance, In Review
   review: "\u{1F7E3}",
-  // (unused - review states come through as "started")
   completed: "\u{1F7E2}",
-  // Done
   canceled: "\u274C"
-  // Canceled, Duplicate
+};
+var stateNameIconMap = {
+  "In Progress": "\u{1F7E1}",
+  "In Code Review": "\u{1F7E3}",
+  "In Review": "\u{1F7E3}",
+  "In Product Acceptance": "\u{1F7E2}",
+  "DS/AQ/SS feedback needed": "\u{1F535}",
+  Triage: "\u{1F536}",
+  Sentry: "\u26D4\uFE0F",
+  Untriaged: "\u26D4\uFE0F",
+  Icebox: "\u26D4\uFE0F",
+  Todo: "\u2B55\uFE0F",
+  Backlog: "\u2B55\uFE0F",
+  Done: "\u2705",
+  Canceled: "\u274C",
+  Duplicate: "\u274C"
 };
 var stateColorMap = {
   backlog: "#bec2c8",
@@ -2484,7 +2493,7 @@ var linearStateSchema = import_zod.z.object({
 }).transform((data) => ({
   ...data,
   get stateIcon() {
-    return stateIconMap[data.type] ?? "\u2753";
+    return stateNameIconMap[data.name] ?? stateIconMap[data.type] ?? "\u2753";
   },
   get stateColor() {
     return stateColorMap[data.type] ?? "#888888";
