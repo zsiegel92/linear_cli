@@ -13,8 +13,9 @@ async function main() {
       l: "loop",
       a: "all",
       u: "unassigned",
+      t: "triaged",
     },
-    boolean: ["help", "me", "projects", "loop", "all", "unassigned"],
+    boolean: ["help", "me", "projects", "loop", "all", "unassigned", "triaged"],
   });
 
   if (args.help) {
@@ -29,6 +30,7 @@ Options:
   -l, --loop        Loop action selector (to copy branch name and open in browser, etc.)
   -a, --all         Show all issues, including closed ones
   -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
+  -t, --triaged     Show only triaged issues (excludes triage status)
 `);
     return;
   }
@@ -53,7 +55,7 @@ Options:
 
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId, args.all, args.unassigned);
+      issues = await getIssues(args.me, projectId, args.all, args.unassigned, args.triaged);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

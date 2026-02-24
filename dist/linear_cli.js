@@ -2805,7 +2805,7 @@ var STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED = [
   "Canceled",
   "Duplicate"
 ];
-async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false, onlyUnassigned = false) {
+async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false, onlyUnassigned = false, onlyTriaged = false) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
   let filterArgs = "orderBy: updatedAt, first: 80";
@@ -2816,15 +2816,22 @@ async function getIssues(onlyMine = false, projectId = void 0, includeClosed = f
   }
   if (onlyUnassigned) {
     filterParts.push(`assignee: { null: true }`);
-    filterParts.push(
-      `state: { name: { nin: ${JSON.stringify(STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED)} } }`
-    );
+    const stateFilter = `name: { nin: ${JSON.stringify(STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED)} }`;
+    if (onlyTriaged) {
+      filterParts.push(`state: { ${stateFilter}, type: { nin: ["triage"] } }`);
+    } else {
+      filterParts.push(`state: { ${stateFilter} }`);
+    }
   }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
   if (!includeClosed && !onlyUnassigned) {
-    filterParts.push(`state: { type: { nin: ["completed", "canceled"] } }`);
+    const excludedTypes = ["completed", "canceled"];
+    if (onlyTriaged) {
+      excludedTypes.push("triage");
+    }
+    filterParts.push(`state: { type: { nin: ${JSON.stringify(excludedTypes)} } }`);
   }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
@@ -3133,9 +3140,10 @@ async function main() {
       p: "projects",
       l: "loop",
       a: "all",
-      u: "unassigned"
+      u: "unassigned",
+      t: "triaged"
     },
-    boolean: ["help", "me", "projects", "loop", "all", "unassigned"]
+    boolean: ["help", "me", "projects", "loop", "all", "unassigned", "triaged"]
   });
   if (args.help) {
     console.log(`Linear CLI - Select and interact with Linear issues
@@ -3149,6 +3157,7 @@ Options:
   -l, --loop        Loop action selector (to copy branch name and open in browser, etc.)
   -a, --all         Show all issues, including closed ones
   -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
+  -t, --triaged     Show only triaged issues (excludes triage status)
 `);
     return;
   }
@@ -3172,7 +3181,7 @@ Options:
     }
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId, args.all, args.unassigned);
+      issues = await getIssues(args.me, projectId, args.all, args.unassigned, args.triaged);
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

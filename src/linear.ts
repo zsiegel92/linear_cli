@@ -57,7 +57,8 @@ export async function getIssues(
   onlyMine: boolean = false,
   projectId: string | undefined = undefined,
   includeClosed: boolean = false,
-  onlyUnassigned: boolean = false
+  onlyUnassigned: boolean = false,
+  onlyTriaged: boolean = false
 ) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
@@ -72,15 +73,22 @@ export async function getIssues(
   }
   if (onlyUnassigned) {
     filterParts.push(`assignee: { null: true }`);
-    filterParts.push(
-      `state: { name: { nin: ${JSON.stringify(STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED)} } }`
-    );
+    const stateFilter = `name: { nin: ${JSON.stringify(STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED)} }`;
+    if (onlyTriaged) {
+      filterParts.push(`state: { ${stateFilter}, type: { nin: ["triage"] } }`);
+    } else {
+      filterParts.push(`state: { ${stateFilter} }`);
+    }
   }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
   if (!includeClosed && !onlyUnassigned) {
-    filterParts.push(`state: { type: { nin: ["completed", "canceled"] } }`);
+    const excludedTypes = ["completed", "canceled"];
+    if (onlyTriaged) {
+      excludedTypes.push("triage");
+    }
+    filterParts.push(`state: { type: { nin: ${JSON.stringify(excludedTypes)} } }`);
   }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
