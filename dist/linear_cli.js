@@ -2805,7 +2805,7 @@ var STATUS_NAMES_THAT_ARE_NOT_UNASSIGNED = [
   "Canceled",
   "Duplicate"
 ];
-async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false, onlyUnassigned = false, onlyTriaged = false) {
+async function getIssues(onlyMine = false, projectId = void 0, includeClosed = false, onlyUnassigned = false, onlyTriaged = false, maxPriority = 0) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
   let filterArgs = "orderBy: updatedAt, first: 80";
@@ -2823,6 +2823,9 @@ async function getIssues(onlyMine = false, projectId = void 0, includeClosed = f
       filterParts.push(`state: { ${stateFilter} }`);
     }
   }
+  if (maxPriority > 0) {
+    filterParts.push(`priority: { lte: ${maxPriority}, gte: 1 }`);
+  }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
@@ -2831,7 +2834,9 @@ async function getIssues(onlyMine = false, projectId = void 0, includeClosed = f
     if (onlyTriaged) {
       excludedTypes.push("triage");
     }
-    filterParts.push(`state: { type: { nin: ${JSON.stringify(excludedTypes)} } }`);
+    filterParts.push(
+      `state: { type: { nin: ${JSON.stringify(excludedTypes)} } }`
+    );
   }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
@@ -3132,8 +3137,23 @@ async function selectAndTakeActionLoop(selectedIssue, looping) {
 
 // src/linear_cli.ts
 var import_minimist = __toESM(require("minimist"));
+function preprocessArgs(argv) {
+  const result = [];
+  for (const arg of argv) {
+    if (arg.startsWith("-") && !arg.startsWith("--")) {
+      const letters = arg.slice(1).replace(/[1-4]/g, "");
+      const digits = [...new Set(arg.slice(1).match(/[1-4]/g) || [])];
+      if (letters) result.push(`-${letters}`);
+      for (const d of digits) result.push(`-${d}`);
+      if (!letters && digits.length === 0) result.push(arg);
+    } else {
+      result.push(arg);
+    }
+  }
+  return result;
+}
 async function main() {
-  const args = (0, import_minimist.default)(process.argv.slice(2), {
+  const args = (0, import_minimist.default)(preprocessArgs(process.argv.slice(2)), {
     alias: {
       h: "help",
       m: "me",
@@ -3143,8 +3163,21 @@ async function main() {
       u: "unassigned",
       t: "triaged"
     },
-    boolean: ["help", "me", "projects", "loop", "all", "unassigned", "triaged"]
+    boolean: [
+      "help",
+      "me",
+      "projects",
+      "loop",
+      "all",
+      "unassigned",
+      "triaged",
+      "1",
+      "2",
+      "3",
+      "4"
+    ]
   });
+  const maxPriority = [4, 3, 2, 1].find((n) => args[n]) ?? 0;
   if (args.help) {
     console.log(`Linear CLI - Select and interact with Linear issues
 
@@ -3158,6 +3191,10 @@ Options:
   -a, --all         Show all issues, including closed ones
   -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
   -t, --triaged     Show only triaged issues (excludes triage status)
+  -1                Priority filter: Urgent only
+  -2                Priority filter: Urgent + High
+  -3                Priority filter: Urgent + High + Normal
+  -4                Priority filter: anything with a priority set
 `);
     return;
   }
@@ -3181,7 +3218,14 @@ Options:
     }
     console.log("Fetching issues...");
     try {
-      issues = await getIssues(args.me, projectId, args.all, args.unassigned, args.triaged);
+      issues = await getIssues(
+        args.me,
+        projectId,
+        args.all,
+        args.unassigned,
+        args.triaged,
+        maxPriority
+      );
     } catch (err) {
       console.error("Error connecting to Linear API");
       return;

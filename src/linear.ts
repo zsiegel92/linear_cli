@@ -58,7 +58,8 @@ export async function getIssues(
   projectId: string | undefined = undefined,
   includeClosed: boolean = false,
   onlyUnassigned: boolean = false,
-  onlyTriaged: boolean = false
+  onlyTriaged: boolean = false,
+  maxPriority: number = 0,
 ) {
   const linearClient = await getAuthenticatedClient();
   const linearGraphQLClient = linearClient.client;
@@ -80,6 +81,9 @@ export async function getIssues(
       filterParts.push(`state: { ${stateFilter} }`);
     }
   }
+  if (maxPriority > 0) {
+    filterParts.push(`priority: { lte: ${maxPriority}, gte: 1 }`);
+  }
   if (projectId) {
     filterParts.push(`project: { id: { eq: "${projectId}" } }`);
   }
@@ -88,7 +92,9 @@ export async function getIssues(
     if (onlyTriaged) {
       excludedTypes.push("triage");
     }
-    filterParts.push(`state: { type: { nin: ${JSON.stringify(excludedTypes)} } }`);
+    filterParts.push(
+      `state: { type: { nin: ${JSON.stringify(excludedTypes)} } }`,
+    );
   }
   if (filterParts.length > 0) {
     filterArgs += `, filter: { ${filterParts.join(", ")} }`;
