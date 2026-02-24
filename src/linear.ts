@@ -11,18 +11,18 @@ let _clientSingleton: LinearClient;
 
 async function getAuth(): Promise<LinearAuth> {
   if (process.env.LINEAR_OAUTH_TOKEN) {
-    console.log("Using OAuth token");
+    console.error("Using OAuth token");
     return {
       accessToken: process.env.LINEAR_OAUTH_TOKEN,
     };
   }
   if (process.env.LINEAR_API_KEY) {
-    console.log("Using API key");
+    console.error("Using API key");
     return {
       apiKey: process.env.LINEAR_API_KEY,
     };
   }
-  console.log("Getting OAuth token");
+  console.error("Getting OAuth token");
   const authResponse = await getOrSetToken();
   return {
     accessToken: authResponse.access_token,

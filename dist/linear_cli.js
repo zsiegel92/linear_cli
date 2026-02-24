@@ -2771,18 +2771,18 @@ async function getOrSetToken() {
 var _clientSingleton;
 async function getAuth() {
   if (process.env.LINEAR_OAUTH_TOKEN) {
-    console.log("Using OAuth token");
+    console.error("Using OAuth token");
     return {
       accessToken: process.env.LINEAR_OAUTH_TOKEN
     };
   }
   if (process.env.LINEAR_API_KEY) {
-    console.log("Using API key");
+    console.error("Using API key");
     return {
       apiKey: process.env.LINEAR_API_KEY
     };
   }
-  console.log("Getting OAuth token");
+  console.error("Getting OAuth token");
   const authResponse = await getOrSetToken();
   return {
     accessToken: authResponse.access_token
@@ -3161,7 +3161,8 @@ async function main() {
       l: "loop",
       a: "all",
       u: "unassigned",
-      t: "triaged"
+      t: "triaged",
+      j: "json"
     },
     boolean: [
       "help",
@@ -3171,6 +3172,7 @@ async function main() {
       "all",
       "unassigned",
       "triaged",
+      "json",
       "1",
       "2",
       "3",
@@ -3191,6 +3193,7 @@ Options:
   -a, --all         Show all issues, including closed ones
   -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
   -t, --triaged     Show only triaged issues (excludes triage status)
+  -j, --json        Output issues as JSON instead of opening fzf
   -1                Priority filter: Urgent only
   -2                Priority filter: Urgent + High
   -3                Priority filter: Urgent + High + Normal
@@ -3216,7 +3219,8 @@ Options:
       projectId = projectSelection.fullItem.id;
       console.log(`Selected project: ${projectSelection.fullItem.name}`);
     }
-    console.log("Fetching issues...");
+    const log = args.json ? console.error : console.log;
+    log("Fetching issues...");
     try {
       issues = await getIssues(
         args.me,
@@ -3230,7 +3234,11 @@ Options:
       console.error("Error connecting to Linear API");
       return;
     }
-    console.log(`Found ${issues.length} issues`);
+    log(`Found ${issues.length} issues`);
+    if (args.json) {
+      console.log(JSON.stringify(issues, null, 2));
+      return;
+    }
     while (true) {
       const selection = await selectIssue(issues);
       if (!selection) {
@@ -3264,4 +3272,4 @@ Options:
     throw err;
   }
 }
-main().then(() => console.log("done"));
+main();

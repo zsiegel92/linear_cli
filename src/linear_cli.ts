@@ -31,6 +31,7 @@ async function main() {
       a: "all",
       u: "unassigned",
       t: "triaged",
+      j: "json",
     },
     boolean: [
       "help",
@@ -40,6 +41,7 @@ async function main() {
       "all",
       "unassigned",
       "triaged",
+      "json",
       "1",
       "2",
       "3",
@@ -63,6 +65,7 @@ Options:
   -a, --all         Show all issues, including closed ones
   -u, --unassigned  Show only unassigned open issues (excludes In Progress, In Code Review, etc.)
   -t, --triaged     Show only triaged issues (excludes triage status)
+  -j, --json        Output issues as JSON instead of opening fzf
   -1                Priority filter: Urgent only
   -2                Priority filter: Urgent + High
   -3                Priority filter: Urgent + High + Normal
@@ -89,7 +92,8 @@ Options:
       console.log(`Selected project: ${projectSelection.fullItem.name}`);
     }
 
-    console.log("Fetching issues...");
+    const log = args.json ? console.error : console.log;
+    log("Fetching issues...");
     try {
       issues = await getIssues(
         args.me,
@@ -103,7 +107,12 @@ Options:
       console.error("Error connecting to Linear API");
       return;
     }
-    console.log(`Found ${issues.length} issues`);
+    log(`Found ${issues.length} issues`);
+
+    if (args.json) {
+      console.log(JSON.stringify(issues, null, 2));
+      return;
+    }
 
     // Main loop: select issue -> select actions -> back to issues
     while (true) {
@@ -145,4 +154,4 @@ Options:
 // npx tsx src/linear_cli.ts
 // or
 // npm run dev
-main().then(() => console.log("done"));
+main();
