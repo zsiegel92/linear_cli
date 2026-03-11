@@ -2920,6 +2920,9 @@ async function getProjects() {
 
 // src/ui.ts
 var import_fzf_ts = require("fzf-ts");
+var getCreatorLabel = (issue) => {
+  return issue.creator?.displayName ?? issue.creator?.name ?? null;
+};
 var getPriorityIcon = (priority) => {
   switch (priority) {
     case 1:
@@ -2943,6 +2946,7 @@ var previewIssue = (issue, teamColors, teamProjectSlugs) => {
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   const stateColor = hexColor(issue.state.stateColor);
   const priorityIcon = getPriorityIcon(issue.priority);
+  const creatorLabel = getCreatorLabel(issue);
   return [
     `${priorityIcon} ${stateColor(`${issue.state.stateIcon} ${issue.state.name}`)}`,
     [
@@ -2952,9 +2956,7 @@ var previewIssue = (issue, teamColors, teamProjectSlugs) => {
       projectSlug ? `(${projectSlug})` : null
     ].filter(isNotNullOrUndefined).map((item) => teamColor(item)).join(" - "),
     [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null].filter(isNotNullOrUndefined).join(" - "),
-    issue.creator?.displayName ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
-      issue.createdAt
-    ).toLocaleString()}` : null,
+    creatorLabel ? `Created by ${creatorLabel} ${new Date(issue.createdAt).toLocaleString()}` : null,
     issue.updatedAt ? `Updated ${showNumberOfDaysAgo(issue.updatedAt)}` : null,
     bold(issue.branchName),
     bold(issue.url ?? ""),
@@ -2965,7 +2967,8 @@ var previewIssue = (issue, teamColors, teamProjectSlugs) => {
 var displayIssue = (issue, teamColors, teamProjectSlugs) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
-  const numberDaysAgoUpdatedMessage = issue.updatedAt ? ` (${showNumberOfDaysAgo(issue.updatedAt)})` : "";
+  const creatorLabel = getCreatorLabel(issue);
+  const numberDaysAgoUpdatedMessage = issue.updatedAt ? ` (${showNumberOfDaysAgo(issue.updatedAt)}${creatorLabel ? ` by ${creatorLabel}` : ""})` : "";
   const metadataPrefix = [
     issue.assignee?.displayName ?? "UNASSIGNED",
     issue.team.key,

@@ -19,6 +19,10 @@ import { z } from "zod";
 
 export type LinearProject = z.infer<typeof linearProjectSchema>;
 
+const getCreatorLabel = (issue: LinearIssue): string | null => {
+  return issue.creator?.displayName ?? issue.creator?.name ?? null;
+};
+
 const getPriorityIcon = (priority: number | null): string => {
   switch (priority) {
     case 1:
@@ -43,6 +47,7 @@ export const previewIssue = (
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
   const stateColor = hexColor(issue.state.stateColor);
   const priorityIcon = getPriorityIcon(issue.priority);
+  const creatorLabel = getCreatorLabel(issue);
   return [
     `${priorityIcon} ${stateColor(`${issue.state.stateIcon} ${issue.state.name}`)}`,
     [
@@ -57,10 +62,8 @@ export const previewIssue = (
     [blue(bold(issue.title)), issue.estimate ? `(${issue.estimate})` : null]
       .filter(isNotNullOrUndefined)
       .join(" - "),
-    issue.creator?.displayName
-      ? `Created by ${issue.creator?.displayName ?? "Unknown"} ${new Date(
-          issue.createdAt,
-        ).toLocaleString()}`
+    creatorLabel
+      ? `Created by ${creatorLabel} ${new Date(issue.createdAt).toLocaleString()}`
       : null,
     issue.updatedAt ? `Updated ${showNumberOfDaysAgo(issue.updatedAt)}` : null,
     bold(issue.branchName),
@@ -79,8 +82,11 @@ export const displayIssue = (
 ) => {
   const teamColor = teamColors.get(issue.team.key) ?? noColor;
   const projectSlug = teamProjectSlugs.get(issue.project?.id ?? "");
+  const creatorLabel = getCreatorLabel(issue);
   const numberDaysAgoUpdatedMessage = issue.updatedAt
-    ? ` (${showNumberOfDaysAgo(issue.updatedAt)})`
+    ? ` (${showNumberOfDaysAgo(issue.updatedAt)}${
+        creatorLabel ? ` by ${creatorLabel}` : ""
+      })`
     : "";
   const metadataPrefix = [
     issue.assignee?.displayName ?? "UNASSIGNED",
