@@ -138,6 +138,28 @@ export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse
   });
 }
 
+export async function refreshAccessToken(
+  refreshToken: string,
+): Promise<LinearAuthResponse> {
+  const tokenRes = await fetch("https://api.linear.app/oauth/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: qs.stringify({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: CLIENT_ID,
+    }),
+  });
+  if (!tokenRes.ok) {
+    const errorText = await tokenRes.text();
+    throw new Error(`Token refresh failed: ${tokenRes.status} - ${errorText}`);
+  }
+  const data = await tokenRes.json();
+  return linearAuthResponseSchema.parse(data);
+}
+
 function generateCodeVerifier(): string {
   return randomBytes(32).toString("base64url");
 }

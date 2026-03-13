@@ -1,10 +1,12 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import { getAuthTokenWithClientIdOnly } from "./oauth-linear";
+import {
+  getAuthTokenWithClientIdOnly,
+  refreshAccessToken,
+} from "./oauth-linear";
 import {
   type LinearAuthResponse,
-  linearAuthResponseSchema,
   linearAuthResponseWithExpiryDateSchema,
   type LinearAuthResponseWithExpiryDate,
 } from "./schema";
@@ -19,7 +21,10 @@ function storeToken(token: LinearAuthResponseWithExpiryDate): void {
   fs.writeFileSync(TOKEN_FILEPATH, JSON.stringify(token));
 }
 
-function getStoredToken(): LinearAuthResponse | null {
+function getStoredToken(): {
+  token: LinearAuthResponseWithExpiryDate;
+  expired: boolean;
+} | null {
   if (!fs.existsSync(TOKEN_FILEPATH)) {
     return null;
   }
@@ -27,10 +32,7 @@ function getStoredToken(): LinearAuthResponse | null {
     const parsed = linearAuthResponseWithExpiryDateSchema.parse(
       JSON.parse(fs.readFileSync(TOKEN_FILEPATH, "utf8"))
     );
-    if (parsed.expiryDate < new Date()) {
-      return null;
-    }
-    return linearAuthResponseSchema.parse(parsed);
+    return { token: parsed, expired: parsed.expiryDate < new Date() };
   } catch (e) {
     return null;
   }
@@ -40,19 +42,30 @@ function getExpiryDate(expires_in_secoonds: number) {
   return new Date(Date.now() + expires_in_secoonds * 1000);
 }
 
+function tokenWithExpiry(
+  token: LinearAuthResponse
+): LinearAuthResponseWithExpiryDate {
+  return { ...token, expiryDate: getExpiryDate(token.expires_in) };
+}
+
 export async function getOrSetToken(): Promise<LinearAuthResponse> {
   if (!fs.existsSync(TOKEN_FILEPATH)) {
     fs.mkdirSync(path.dirname(TOKEN_FILEPATH), { recursive: true });
   }
-  const token = getStoredToken();
-  if (token) {
-    return token;
-  } else {
-    const newToken = await getAuthTokenWithClientIdOnly();
-    storeToken({
-      ...newToken,
-      expiryDate: getExpiryDate(newToken.expires_in),
-    });
-    return newToken;
+  const stored = getStoredToken();
+  if (stored && !stored.expired) {
+    return stored.token;
   }
+  if (stored?.token.refresh_token) {
+    try {
+      const refreshed = await refreshAccessToken(stored.token.refresh_token);
+      storeToken(tokenWithExpiry(refreshed));
+      return refreshed;
+    } catch {
+      // refresh failed — fall through to full re-auth
+    }
+  }
+  const newToken = await getAuthTokenWithClientIdOnly();
+  storeToken(tokenWithExpiry(newToken));
+  return newToken;
 }

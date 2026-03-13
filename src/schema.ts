@@ -144,6 +144,7 @@ export const linearAuthResponseSchema = z.object({
   token_type: z.string(),
   expires_in: z.number(),
   scope: z.string(),
+  refresh_token: z.string().optional(),
 });
 export type LinearAuthResponse = z.infer<typeof linearAuthResponseSchema>;
 

@@ -2553,7 +2553,8 @@ var linearAuthResponseSchema = import_zod.z.object({
   access_token: import_zod.z.string(),
   token_type: import_zod.z.string(),
   expires_in: import_zod.z.number(),
-  scope: import_zod.z.string()
+  scope: import_zod.z.string(),
+  refresh_token: import_zod.z.string().optional()
 });
 var linearAuthResponseWithExpiryDateSchema = linearAuthResponseSchema.extend({
   expiryDate: import_zod.z.coerce.date()
@@ -2714,6 +2715,25 @@ async function getAuthTokenWithClientIdOnly() {
     });
   });
 }
+async function refreshAccessToken(refreshToken) {
+  const tokenRes = await fetch("https://api.linear.app/oauth/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: import_qs.default.stringify({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: CLIENT_ID
+    })
+  });
+  if (!tokenRes.ok) {
+    const errorText = await tokenRes.text();
+    throw new Error(`Token refresh failed: ${tokenRes.status} - ${errorText}`);
+  }
+  const data = await tokenRes.json();
+  return linearAuthResponseSchema.parse(data);
+}
 function generateCodeVerifier() {
   return (0, import_crypto.randomBytes)(32).toString("base64url");
 }
@@ -2739,10 +2759,7 @@ function getStoredToken() {
     const parsed = linearAuthResponseWithExpiryDateSchema.parse(
       JSON.parse(import_fs.default.readFileSync(TOKEN_FILEPATH, "utf8"))
     );
-    if (parsed.expiryDate < /* @__PURE__ */ new Date()) {
-      return null;
-    }
-    return linearAuthResponseSchema.parse(parsed);
+    return { token: parsed, expired: parsed.expiryDate < /* @__PURE__ */ new Date() };
   } catch (e) {
     return null;
   }
@@ -2750,21 +2767,28 @@ function getStoredToken() {
 function getExpiryDate(expires_in_secoonds) {
   return new Date(Date.now() + expires_in_secoonds * 1e3);
 }
+function tokenWithExpiry(token) {
+  return { ...token, expiryDate: getExpiryDate(token.expires_in) };
+}
 async function getOrSetToken() {
   if (!import_fs.default.existsSync(TOKEN_FILEPATH)) {
     import_fs.default.mkdirSync(import_path.default.dirname(TOKEN_FILEPATH), { recursive: true });
   }
-  const token = getStoredToken();
-  if (token) {
-    return token;
-  } else {
-    const newToken = await getAuthTokenWithClientIdOnly();
-    storeToken({
-      ...newToken,
-      expiryDate: getExpiryDate(newToken.expires_in)
-    });
-    return newToken;
+  const stored = getStoredToken();
+  if (stored && !stored.expired) {
+    return stored.token;
   }
+  if (stored?.token.refresh_token) {
+    try {
+      const refreshed = await refreshAccessToken(stored.token.refresh_token);
+      storeToken(tokenWithExpiry(refreshed));
+      return refreshed;
+    } catch {
+    }
+  }
+  const newToken = await getAuthTokenWithClientIdOnly();
+  storeToken(tokenWithExpiry(newToken));
+  return newToken;
 }
 
 // src/linear.ts
