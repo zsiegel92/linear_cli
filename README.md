@@ -23,12 +23,7 @@ Note: `fzf` must be installed. Install it with `brew install fzf`.
 
 ## Usage
 
-1. Create an API key at https://linear.app/current-ai/settings/account/security
-2. Set the `LINEAR_API_KEY` environment variable by adding the following to your `.zshrc` file:
-```bash
-export LINEAR_API_KEY='<your-api-key>'
-```
-3. Run the command
+Run the command and follow the OAuth prompt to log in:
 ```bash
 linear-cli
 # OR

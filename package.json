@@ -1,6 +1,6 @@
 {
   "name": "linear-select-issue-cli",
-  "version": "1.9.94",
+  "version": "1.9.95",
   "author": "zsiegel",
   "prepublishOnly": "npm run build",
   "scripts": {
