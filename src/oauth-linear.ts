@@ -64,7 +64,7 @@ export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse
         redirect_uri: REDIRECT_URI,
       };
       const authUrl = `https://linear.app/oauth/authorize?${qs.stringify(
-        params
+        params,
       )}`;
       openInBrowser(authUrl);
     });
@@ -106,7 +106,7 @@ export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse
         if (!tokenRes.ok) {
           const errorText = await tokenRes.text();
           throw new Error(
-            `Token exchange failed: ${tokenRes.status} - ${errorText}`
+            `Token exchange failed: ${tokenRes.status} - ${errorText}`,
           );
         }
         const data = await tokenRes.json();
@@ -131,7 +131,7 @@ export async function getAuthTokenWithClientIdOnly(): Promise<LinearAuthResponse
         code_challenge_method: "S256",
       };
       const authUrl = `https://linear.app/oauth/authorize?${qs.stringify(
-        params
+        params,
       )}`;
       openInBrowser(authUrl);
     });
