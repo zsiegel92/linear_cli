@@ -3,13 +3,12 @@ import { openInBrowser } from "./utils";
 import qs from "qs";
 import { createHash, randomBytes } from "crypto";
 import { linearAuthResponseSchema, type LinearAuthResponse } from "./schema";
+import { SUCCESS_MESSAGE } from "./auth-success-message";
 
 const CLIENT_ID = "5550832bef77c4187b8e4c71734348e3"; // not secret, can be published
 const REDIRECT_URI = "http://localhost:3002/token";
 const PORT = 3002;
 const CALLBACK_ROUTE = "/token";
-const SUCCESS_MESSAGE =
-  "Login successful. You can close this window. Your OAuth token is stored at `~/.config/linear-select-issue-cli/oauth-token.json`";
 
 export async function getAuthTokenWithClientSecret(): Promise<LinearAuthResponse> {
   const CLIENT_SECRET = process.env.LINEAR_CLIENT_SECRET;
